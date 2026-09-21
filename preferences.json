@@ -8,6 +8,7 @@
     "placeholder": false,
     "options": [
       { "label": "Ring around the tab", "value": "ring" },
+      { "label": "Glow around the whole tab", "value": "tab-glow" },
       { "label": "Glow behind the favicon", "value": "glow" },
       { "label": "Dot in the corner", "value": "dot" },
       { "label": "Ring and dot", "value": "ring-dot" },
@@ -15,28 +16,14 @@
     ]
   },
   {
-    "property": "mod.highlight-active-essentials.loaded.color",
-    "label": "Color",
-    "type": "dropdown",
-    "defaultValue": "accent",
-    "placeholder": false,
-    "options": [
-      { "label": "Zen accent color", "value": "accent" },
-      { "label": "Custom", "value": "custom" }
-    ],
-    "conditions": [
-      { "not": { "property": "mod.highlight-active-essentials.loaded.style", "value": "off" } }
-    ]
-  },
-  {
-    "property": "mod.highlight-active-essentials.loaded.custom-color",
-    "label": "Custom color (any CSS color; leave the field to save)",
+    "property": "mod.highlight-active-essentials.loaded.marker-color",
+    "label": "Color (any CSS color; empty uses Zen's accent color; leave the field to save)",
     "type": "string",
-    "defaultValue": "#3ddc84",
-    "placeholder": "e.g. #3ddc84, rgb(61 220 132), lime",
+    "defaultValue": "",
+    "placeholder": "Zen accent color",
     "border": "value",
     "conditions": [
-      { "if": { "property": "mod.highlight-active-essentials.loaded.color", "value": "custom" } }
+      { "not": { "property": "mod.highlight-active-essentials.loaded.style", "value": "off" } }
     ]
   },
   {
@@ -77,6 +64,22 @@
       { "label": "Grayscale only", "value": "grayscale" },
       { "label": "Browser default (mod does nothing)", "value": "browser" },
       { "label": "Never dim (always full color)", "value": "never" }
+    ]
+  },
+  {
+    "property": "mod.highlight-active-essentials.unloaded.target",
+    "label": "Apply to",
+    "type": "dropdown",
+    "defaultValue": "icon",
+    "placeholder": false,
+    "options": [
+      { "label": "Favicon only", "value": "icon" },
+      { "label": "The whole tab, background included", "value": "tab" }
+    ],
+    "conditions": [
+      { "if": { "property": "mod.highlight-active-essentials.unloaded.style", "value": "dim" } },
+      { "if": { "property": "mod.highlight-active-essentials.unloaded.style", "value": "dim-grayscale" } },
+      { "if": { "property": "mod.highlight-active-essentials.unloaded.style", "value": "grayscale" } }
     ]
   },
   {

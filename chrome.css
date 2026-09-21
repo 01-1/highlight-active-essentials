@@ -5,8 +5,9 @@
  * has not written yet simply means "use the default".
  *
  * Compatibility contract. This sheet only ever sets:
- *   .tab-background      outline, outline-offset
+ *   .tab-background      outline, outline-offset, filter
  *   .tab-icon-image      opacity, filter, transition
+ *   .tab-stack           opacity, filter, transition
  *   .tab-content::after  the dot marker
  * It never touches the tab element's opacity/visibility (Neo Zen's collapsed
  * Essentials animate those), .tab-background's background/border/box-shadow
@@ -25,9 +26,11 @@
   --hae-unloaded-opacity: 0.45;
   --hae-unloaded-filter: none;
 
-  @media -moz-pref("mod.highlight-active-essentials.loaded.color", "custom") {
-    /* Sine exposes string preferences as --mod-<property> on :root. */
-    --hae-color: var(--mod-highlight-active-essentials-loaded-custom-color, var(--zen-primary-color));
+  /* A bare -moz-pref() on a string preference is true only when the string
+     is non-empty, so an empty field falls back to Zen's accent color. Sine
+     exposes the field's text as --mod-<property> on :root. */
+  @media -moz-pref("mod.highlight-active-essentials.loaded.marker-color") {
+    --hae-color: var(--mod-highlight-active-essentials-loaded-marker-color, var(--zen-primary-color));
   }
 
   @media -moz-pref("mod.highlight-active-essentials.loaded.strength", "subtle") {
@@ -61,14 +64,21 @@
 
 @media not -moz-pref("mod.highlight-active-essentials.loaded.style", "off") {
   .tabbrowser-tab[zen-essential="true"]:not([pending]) {
-    /* Ring: the default, also part of "ring-dot". Inset so the Essentials
-       grid's overflow: hidden never clips it. */
+    /* Ring: the default, also part of "tab-glow" and "ring-dot". Inset so the
+       Essentials grid's overflow: hidden never clips it. */
     @media not -moz-pref("mod.highlight-active-essentials.loaded.style", "glow") {
       @media not -moz-pref("mod.highlight-active-essentials.loaded.style", "dot") {
         & .tab-background {
           outline: var(--hae-ring-width) solid var(--hae-color) !important;
           outline-offset: calc(-1 * var(--hae-ring-width)) !important;
         }
+      }
+    }
+
+    /* Whole-tab glow: the background's silhouette (ring included) casts light. */
+    @media -moz-pref("mod.highlight-active-essentials.loaded.style", "tab-glow") {
+      & .tab-background {
+        filter: drop-shadow(0 0 var(--hae-glow-radius) var(--hae-color)) !important;
       }
     }
 
@@ -102,6 +112,7 @@
     .tabbrowser-tab[zen-essential="true"]:not([pending])[visuallyselected] {
       & .tab-background {
         outline: none !important;
+        filter: none !important;
       }
       & .tab-icon-image {
         filter: none !important;
@@ -117,30 +128,65 @@
 
 /* Firefox marks every unloaded tab with [pending] and adds [discarded] when
    the user chose "Unload Tab". Both are mirrored onto .tab-icon-image, where
-   Firefox's own browser.tabs.fadeOut* rules also live, so setting opacity here
-   replaces the native fade instead of stacking with it. */
+   Firefox's own browser.tabs.fadeOut* rules also live, so setting opacity
+   there replaces the native fade instead of stacking with it. Whole-tab mode
+   fades .tab-stack (background and content together) and pins the favicon to
+   full strength so the native fade cannot double-dim it. */
 @media not -moz-pref("mod.highlight-active-essentials.unloaded.style", "browser") {
-  @media not -moz-pref("mod.highlight-active-essentials.unloaded.scope", "explicit") {
-    .tabbrowser-tab[zen-essential="true"][pending] .tab-icon-image {
-      opacity: var(--hae-unloaded-opacity) !important;
-      filter: var(--hae-unloaded-filter) !important;
-      transition: opacity 0.4s ease, filter 0.4s ease !important;
+  @media not -moz-pref("mod.highlight-active-essentials.unloaded.target", "tab") {
+    @media not -moz-pref("mod.highlight-active-essentials.unloaded.scope", "explicit") {
+      .tabbrowser-tab[zen-essential="true"][pending] .tab-icon-image {
+        opacity: var(--hae-unloaded-opacity) !important;
+        filter: var(--hae-unloaded-filter) !important;
+        transition: opacity 0.4s ease, filter 0.4s ease !important;
+      }
+    }
+    @media -moz-pref("mod.highlight-active-essentials.unloaded.scope", "explicit") {
+      .tabbrowser-tab[zen-essential="true"][pending][discarded] .tab-icon-image {
+        opacity: var(--hae-unloaded-opacity) !important;
+        filter: var(--hae-unloaded-filter) !important;
+        transition: opacity 0.4s ease, filter 0.4s ease !important;
+      }
     }
   }
 
-  @media -moz-pref("mod.highlight-active-essentials.unloaded.scope", "explicit") {
-    .tabbrowser-tab[zen-essential="true"][pending][discarded] .tab-icon-image {
-      opacity: var(--hae-unloaded-opacity) !important;
-      filter: var(--hae-unloaded-filter) !important;
-      transition: opacity 0.4s ease, filter 0.4s ease !important;
+  @media -moz-pref("mod.highlight-active-essentials.unloaded.target", "tab") {
+    @media not -moz-pref("mod.highlight-active-essentials.unloaded.scope", "explicit") {
+      .tabbrowser-tab[zen-essential="true"][pending] {
+        & .tab-stack {
+          opacity: var(--hae-unloaded-opacity) !important;
+          filter: var(--hae-unloaded-filter) !important;
+          transition: opacity 0.4s ease, filter 0.4s ease !important;
+        }
+        & .tab-icon-image {
+          opacity: 1 !important;
+          filter: none !important;
+        }
+      }
+    }
+    @media -moz-pref("mod.highlight-active-essentials.unloaded.scope", "explicit") {
+      .tabbrowser-tab[zen-essential="true"][pending][discarded] {
+        & .tab-stack {
+          opacity: var(--hae-unloaded-opacity) !important;
+          filter: var(--hae-unloaded-filter) !important;
+          transition: opacity 0.4s ease, filter 0.4s ease !important;
+        }
+        & .tab-icon-image {
+          opacity: 1 !important;
+          filter: none !important;
+        }
+      }
     }
   }
 
   /* "Never dim" applies to every unloaded Essential regardless of scope. */
   @media -moz-pref("mod.highlight-active-essentials.unloaded.style", "never") {
-    .tabbrowser-tab[zen-essential="true"][pending] .tab-icon-image {
-      opacity: 1 !important;
-      filter: none !important;
+    .tabbrowser-tab[zen-essential="true"][pending] {
+      & .tab-icon-image,
+      & .tab-stack {
+        opacity: 1 !important;
+        filter: none !important;
+      }
     }
   }
 }

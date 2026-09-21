@@ -37,7 +37,7 @@ function declarations(source) {
 const decls = declarations(css);
 const code = css.replace(/\/\*[\s\S]*?\*\//g, '');
 const rule = (d) => d.selectors.at(-1);
-const target = (d) => rule(d).split(/\s+/).at(-1);
+const targets = (d) => rule(d).split(',').map((s) => s.trim().split(/\s+/).at(-1));
 const path_ = (d) => d.selectors.join(' ');
 
 test('package points at existing files and uses the mod id as the pref prefix', () => {
@@ -66,7 +66,7 @@ test('every preference the stylesheet reads exists with a matching option', () =
   for (const [, property, value] of uses) {
     const pref = byProperty.get(property);
     assert.ok(pref, `unknown preference ${property}`);
-    if (value === undefined) assert.equal(pref.type, 'checkbox', property);
+    if (value === undefined) assert.ok(['checkbox', 'string'].includes(pref.type), property);
     else assert.ok(pref.options.some((o) => o.value === value), `${property}=${value}`);
   }
   for (const [, name] of css.matchAll(/var\(--mod-([a-z0-9-]+)/g)) {
@@ -77,7 +77,7 @@ test('every preference the stylesheet reads exists with a matching option', () =
 
 test('every non-default option and every checkbox changes something', () => {
   for (const pref of prefs) {
-    if (pref.type === 'checkbox') assert.ok(css.includes(`-moz-pref("${pref.property}")`), pref.property);
+    if (pref.type !== 'dropdown') assert.ok(css.includes(`-moz-pref("${pref.property}")`), pref.property);
     if (pref.type !== 'dropdown') continue;
     for (const { value } of pref.options) {
       if (value === pref.defaultValue) continue;
@@ -94,29 +94,30 @@ test('defaults are the fall-through: the sheet never needs the default value to 
     assert.ok(!positive.test(css), `${pref.property} relies on its default being written`);
   }
   assert.equal(byProperty.get(`${prefix}loaded.hide-on-selected`).defaultValue, false);
+  for (const pref of prefs.filter((p) => p.type === 'string')) assert.equal(pref.defaultValue, '', pref.property);
 });
 
 test('only touches properties that Zen, Firefox, and Neo Zen leave alone', () => {
   const allowed = {
-    '.tab-background': ['outline', 'outline-offset'],
+    '.tab-background': ['outline', 'outline-offset', 'filter'],
     '.tab-icon-image': ['opacity', 'filter', 'transition'],
+    '.tab-stack': ['opacity', 'filter', 'transition'],
     '.tab-content': ['position'],
     '.tab-content::after': null, // owned entirely by this mod
   };
   for (const d of decls) {
-    const element = target(d);
-    if (d.property.startsWith('--')) {
-      assert.equal(element, '.tabbrowser-tab[zen-essential="true"]', path_(d));
-      continue;
+    for (const element of targets(d)) {
+      if (d.property.startsWith('--')) {
+        assert.equal(element, '.tabbrowser-tab[zen-essential="true"]', path_(d));
+        continue;
+      }
+      assert.ok(!element.startsWith('.tabbrowser-tab'), `${d.property} set on the tab element itself`);
+      assert.ok(element in allowed, `${d.property} on unexpected element ${element}`);
+      if (allowed[element]) assert.ok(allowed[element].includes(d.property), `${d.property} on ${element}`);
+      if (element !== '.tab-content::after') assert.match(d.value, /!important$/, `${d.property} on ${element}`);
     }
-    assert.ok(element in allowed, `${d.property} on unexpected element ${element}`);
-    if (allowed[element]) assert.ok(allowed[element].includes(d.property), `${d.property} on ${element}`);
-    if (element !== '.tab-content::after') assert.match(d.value, /!important$/, `${d.property} on ${element}`);
   }
   assert.ok(!/\.tab-background::(before|after)/.test(code));
-  for (const d of decls) {
-    if (target(d).startsWith('.tabbrowser-tab')) assert.ok(d.property.startsWith('--'), `${d.property} set on the tab element itself`);
-  }
 });
 
 test('loaded and unloaded rules cannot both match the same tab', () => {
@@ -125,22 +126,33 @@ test('loaded and unloaded rules cannot both match the same tab', () => {
   for (const d of decls.filter((d) => !d.property.startsWith('--'))) {
     assert.ok(essential(d), path_(d));
     const p = path_(d);
-    if (target(d) === '.tab-icon-image' && d.property === 'opacity') assert.ok(p.includes('[pending]'), p);
+    if (d.property === 'opacity') assert.ok(p.includes('[pending]'), p);
     else if (marker(d) && !p.includes('[pending] ') && !p.includes('[discarded]')) assert.ok(p.includes(':not([pending])'), p);
   }
 });
 
 test('explicit scope only dims [discarded] tabs and "never" restores full color', () => {
   const dims = decls.filter((d) => d.property === 'opacity' && d.value.includes('--hae-unloaded-opacity'));
-  assert.equal(dims.length, 2);
-  const explicit = dims.find((d) => d.context.some((c) => c.includes('"explicit")') && !c.startsWith('@media not')));
-  const all = dims.find((d) => d !== explicit);
-  assert.ok(rule(explicit).includes('[pending][discarded]'), path_(explicit));
-  assert.ok(rule(all).includes('[pending]') && !rule(all).includes('discarded'), path_(all));
-  assert.ok(all.context.some((c) => c.startsWith('@media not') && c.includes('"explicit")')));
-  const never = decls.find((d) => d.property === 'opacity' && d.value === '1 !important' && !d.property.startsWith('--'));
-  assert.ok(never.context.some((c) => c.includes('"never")')));
-  assert.equal(rule(never), '.tabbrowser-tab[zen-essential="true"][pending] .tab-icon-image');
+  assert.deepEqual(dims.map((d) => targets(d)[0]).sort(), ['.tab-icon-image', '.tab-icon-image', '.tab-stack', '.tab-stack']);
+  for (const d of dims) {
+    const explicit = d.context.some((c) => !c.startsWith('@media not') && c.includes('"explicit")'));
+    if (explicit) assert.ok(rule(d).includes('[pending][discarded]') || d.selectors.some((s) => s.includes('[pending][discarded]')), path_(d));
+    else {
+      assert.ok(d.context.some((c) => c.startsWith('@media not') && c.includes('"explicit")')), path_(d));
+      assert.ok(!path_(d).includes('discarded'), path_(d));
+    }
+    const wholeTab = d.context.some((c) => !c.startsWith('@media not') && c.includes('"tab")'));
+    assert.equal(targets(d)[0], wholeTab ? '.tab-stack' : '.tab-icon-image', path_(d));
+  }
+  // Whole-tab mode pins the favicon so Firefox's native fade cannot stack.
+  const pins = decls.filter((d) => d.property === 'opacity' && d.value === '1 !important');
+  const inTabMode = pins.filter((d) => d.context.some((c) => !c.startsWith('@media not') && c.includes('"tab")')));
+  assert.equal(inTabMode.length, 2);
+  for (const d of inTabMode) assert.deepEqual(targets(d), ['.tab-icon-image']);
+  const never = pins.find((d) => d.context.some((c) => c.includes('"never")')));
+  assert.ok(never, 'never block missing');
+  assert.deepEqual(targets(never).sort(), ['.tab-icon-image', '.tab-stack']);
+  assert.ok(never.selectors.some((s) => s === '.tabbrowser-tab[zen-essential="true"][pending]'));
 });
 
 test('README documents every setting', () => {
