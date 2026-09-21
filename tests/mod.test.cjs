@@ -154,6 +154,34 @@ test('marker color stays valid after switching the marker off and back on', () =
   assert.notEqual(byProperty.get(`${prefix}loaded.custom-color`).defaultValue.trim(), '');
 });
 
+test('marker measurements are numeric and glow strength does not change its radius', () => {
+  const numeric = {
+    [`${prefix}loaded.ring-width`]: 2,
+    [`${prefix}loaded.glow-strength`]: 100,
+    [`${prefix}loaded.dot-size`]: 5,
+  };
+  for (const [property, defaultValue] of Object.entries(numeric)) {
+    const pref = byProperty.get(property);
+    assert.equal(pref?.type, 'string', property);
+    assert.equal(pref?.value, 'num', property);
+    assert.equal(pref?.defaultValue, defaultValue, property);
+    assert.ok(css.includes(`var(--${property.replaceAll('.', '-')}, ${defaultValue})`), property);
+  }
+
+  const radius = decls.find((d) => d.property === '--hae-glow-radius');
+  const strength = decls.find((d) => d.property === '--hae-glow-strength');
+  assert.equal(radius?.value, '5px');
+  assert.ok(!radius.value.includes('glow-strength'));
+  assert.match(strength?.value, /loaded-glow-strength/);
+
+  const glowFilters = decls.filter((d) => d.property === 'filter' && d.value.includes('drop-shadow'));
+  assert.equal(glowFilters.length, 2);
+  for (const d of glowFilters) {
+    assert.match(d.value, /var\(--hae-glow-radius\)/);
+    assert.match(d.value, /var\(--hae-glow-color\)/);
+  }
+});
+
 test('explicit scope only dims [discarded] tabs and "never" restores full color', () => {
   const dims = decls.filter((d) => d.property === 'opacity' && d.value.includes('--hae-unloaded-opacity'));
   assert.deepEqual(dims.map((d) => targets(d)[0]).sort(), ['.tab-icon-image', '.tab-icon-image', '.tab-stack', '.tab-stack']);

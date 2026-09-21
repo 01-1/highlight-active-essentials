@@ -43,18 +43,39 @@
     ]
   },
   {
-    "property": "mod.highlight-active-essentials.loaded.strength",
-    "label": "Strength",
-    "type": "dropdown",
-    "defaultValue": "normal",
-    "placeholder": false,
-    "options": [
-      { "label": "Subtle", "value": "subtle" },
-      { "label": "Normal", "value": "normal" },
-      { "label": "Bold", "value": "bold" }
-    ],
+    "property": "mod.highlight-active-essentials.loaded.ring-width",
+    "label": "Ring width (px; leave the field to save)",
+    "type": "string",
+    "value": "num",
+    "defaultValue": 2,
+    "placeholder": "2",
     "conditions": [
-      { "not": { "property": "mod.highlight-active-essentials.loaded.style", "value": "off" } }
+      { "if": { "property": "mod.highlight-active-essentials.loaded.style", "value": "ring" } },
+      { "if": { "property": "mod.highlight-active-essentials.loaded.style", "value": "ring-dot" } }
+    ]
+  },
+  {
+    "property": "mod.highlight-active-essentials.loaded.glow-strength",
+    "label": "Glow strength (0–100%; leave the field to save)",
+    "type": "string",
+    "value": "num",
+    "defaultValue": 100,
+    "placeholder": "100",
+    "conditions": [
+      { "if": { "property": "mod.highlight-active-essentials.loaded.style", "value": "tab-glow" } },
+      { "if": { "property": "mod.highlight-active-essentials.loaded.style", "value": "glow" } }
+    ]
+  },
+  {
+    "property": "mod.highlight-active-essentials.loaded.dot-size",
+    "label": "Dot size (px; leave the field to save)",
+    "type": "string",
+    "value": "num",
+    "defaultValue": 5,
+    "placeholder": "5",
+    "conditions": [
+      { "if": { "property": "mod.highlight-active-essentials.loaded.style", "value": "dot" } },
+      { "if": { "property": "mod.highlight-active-essentials.loaded.style", "value": "ring-dot" } }
     ]
   },
   {

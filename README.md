@@ -24,10 +24,12 @@ This folder is the complete mod source; there is no build step and no JavaScript
 | Marker | Ring around the tab · Glow around the whole tab · Glow behind the favicon · Dot in the corner · Ring and dot · Off | Ring |
 | Color | Zen accent color · Custom | Zen accent color |
 | Custom color | Any CSS color, e.g. `#3ddc84`, `rgb(61 220 132)`, `lime`. Leave the field to save it. | `#3ddc84` |
-| Strength | Subtle · Normal · Bold (ring width, glow radius, and dot size) | Normal |
+| Ring width | Any whole number of pixels. Shown for Ring and Ring and dot. | `2` |
+| Glow strength | Any whole number from 0–100%. Shown for both glow styles. Changes glow density while its radius stays fixed. | `100` |
+| Dot size | Any whole number of pixels. Shown for Dot and Ring and dot. | `5` |
 | Hide the marker on the selected Essential | Checkbox. The selected tab already has its own background. | Off |
 
-"Glow around the whole tab" makes the tab's silhouette cast light in the marker color without drawing a ring. An invalid custom color makes the marker disappear rather than fall back, so fix the value if nothing shows.
+"Glow around the whole tab" makes the tab's silhouette cast light in the marker color without drawing a ring. Glow strength changes the opacity of that light, not its radius. An invalid custom color makes the marker disappear rather than fall back, so fix the value if nothing shows.
 
 ### Unloaded Essentials
 

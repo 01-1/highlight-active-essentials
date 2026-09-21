@@ -20,26 +20,17 @@
 
 .tabbrowser-tab[zen-essential="true"] {
   --hae-color: var(--zen-primary-color);
-  --hae-ring-width: 2px;
+  --hae-ring-width: max(0px, calc(var(--mod-highlight-active-essentials-loaded-ring-width, 2) * 1px));
   --hae-glow-radius: 5px;
-  --hae-dot-size: 5px;
+  --hae-glow-strength: clamp(0%, calc(var(--mod-highlight-active-essentials-loaded-glow-strength, 100) * 1%), 100%);
+  --hae-glow-color: color-mix(in srgb, var(--hae-color) var(--hae-glow-strength), transparent);
+  --hae-dot-size: max(0px, calc(var(--mod-highlight-active-essentials-loaded-dot-size, 5) * 1px));
   --hae-unloaded-opacity: 0.45;
   --hae-unloaded-filter: none;
 
   @media -moz-pref("mod.highlight-active-essentials.loaded.color", "custom") {
     /* Sine exposes string preferences as --mod-<property> on :root. */
     --hae-color: var(--mod-highlight-active-essentials-loaded-custom-color, var(--zen-primary-color));
-  }
-
-  @media -moz-pref("mod.highlight-active-essentials.loaded.strength", "subtle") {
-    --hae-ring-width: 1px;
-    --hae-glow-radius: 3px;
-    --hae-dot-size: 4px;
-  }
-  @media -moz-pref("mod.highlight-active-essentials.loaded.strength", "bold") {
-    --hae-ring-width: 3px;
-    --hae-glow-radius: 8px;
-    --hae-dot-size: 6px;
   }
 
   @media -moz-pref("mod.highlight-active-essentials.unloaded.opacity", "light") {
@@ -78,13 +69,13 @@
     /* Whole-tab glow: the background's silhouette casts light without a ring. */
     @media -moz-pref("mod.highlight-active-essentials.loaded.style", "tab-glow") {
       & .tab-background {
-        filter: drop-shadow(0 0 var(--hae-glow-radius) var(--hae-color)) !important;
+        filter: drop-shadow(0 0 var(--hae-glow-radius) var(--hae-glow-color)) !important;
       }
     }
 
     @media -moz-pref("mod.highlight-active-essentials.loaded.style", "glow") {
       & .tab-icon-image {
-        filter: drop-shadow(0 0 var(--hae-glow-radius) var(--hae-color)) !important;
+        filter: drop-shadow(0 0 var(--hae-glow-radius) var(--hae-glow-color)) !important;
       }
     }
 
