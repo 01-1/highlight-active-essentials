@@ -1,0 +1,146 @@
+/* Highlight Active Essentials — Sine mod for Zen Browser.
+ *
+ * Marks loaded Essentials and fades unloaded ones. Settings are read with
+ * -moz-pref() so they apply live in every window, and a preference that Sine
+ * has not written yet simply means "use the default".
+ *
+ * Compatibility contract. This sheet only ever sets:
+ *   .tab-background      outline, outline-offset
+ *   .tab-icon-image      opacity, filter, transition
+ *   .tab-content::after  the dot marker
+ * It never touches the tab element's opacity/visibility (Neo Zen's collapsed
+ * Essentials animate those), .tab-background's background/border/box-shadow
+ * (Neo Zen owns them), or .tab-background::before/::after (Zen owns them).
+ * !important is required because Sine loads this as a user sheet, which
+ * otherwise loses to the browser's own chrome styles.
+ */
+
+/* ---- Values chosen by the preferences ---------------------------------- */
+
+.tabbrowser-tab[zen-essential="true"] {
+  --hae-color: var(--zen-primary-color);
+  --hae-ring-width: 2px;
+  --hae-glow-radius: 5px;
+  --hae-dot-size: 5px;
+  --hae-unloaded-opacity: 0.45;
+  --hae-unloaded-filter: none;
+
+  @media -moz-pref("mod.highlight-active-essentials.loaded.color", "custom") {
+    /* Sine exposes string preferences as --mod-<property> on :root. */
+    --hae-color: var(--mod-highlight-active-essentials-loaded-custom-color, var(--zen-primary-color));
+  }
+
+  @media -moz-pref("mod.highlight-active-essentials.loaded.strength", "subtle") {
+    --hae-ring-width: 1px;
+    --hae-glow-radius: 3px;
+    --hae-dot-size: 4px;
+  }
+  @media -moz-pref("mod.highlight-active-essentials.loaded.strength", "bold") {
+    --hae-ring-width: 3px;
+    --hae-glow-radius: 8px;
+    --hae-dot-size: 6px;
+  }
+
+  @media -moz-pref("mod.highlight-active-essentials.unloaded.opacity", "light") {
+    --hae-unloaded-opacity: 0.7;
+  }
+  @media -moz-pref("mod.highlight-active-essentials.unloaded.opacity", "heavy") {
+    --hae-unloaded-opacity: 0.25;
+  }
+  @media -moz-pref("mod.highlight-active-essentials.unloaded.style", "dim-grayscale"),
+         -moz-pref("mod.highlight-active-essentials.unloaded.style", "grayscale") {
+    --hae-unloaded-filter: grayscale(1);
+  }
+  @media -moz-pref("mod.highlight-active-essentials.unloaded.style", "grayscale"),
+         -moz-pref("mod.highlight-active-essentials.unloaded.style", "never") {
+    --hae-unloaded-opacity: 1;
+  }
+}
+
+/* ---- Loaded Essentials -------------------------------------------------- */
+
+@media not -moz-pref("mod.highlight-active-essentials.loaded.style", "off") {
+  .tabbrowser-tab[zen-essential="true"]:not([pending]) {
+    /* Ring: the default, also part of "ring-dot". Inset so the Essentials
+       grid's overflow: hidden never clips it. */
+    @media not -moz-pref("mod.highlight-active-essentials.loaded.style", "glow") {
+      @media not -moz-pref("mod.highlight-active-essentials.loaded.style", "dot") {
+        & .tab-background {
+          outline: var(--hae-ring-width) solid var(--hae-color) !important;
+          outline-offset: calc(-1 * var(--hae-ring-width)) !important;
+        }
+      }
+    }
+
+    @media -moz-pref("mod.highlight-active-essentials.loaded.style", "glow") {
+      & .tab-icon-image {
+        filter: drop-shadow(0 0 var(--hae-glow-radius) var(--hae-color)) !important;
+      }
+    }
+
+    @media -moz-pref("mod.highlight-active-essentials.loaded.style", "dot"),
+           -moz-pref("mod.highlight-active-essentials.loaded.style", "ring-dot") {
+      & .tab-content {
+        position: relative !important;
+      }
+      & .tab-content::after {
+        content: "";
+        position: absolute;
+        top: 3px;
+        inset-inline-end: 3px;
+        width: var(--hae-dot-size);
+        height: var(--hae-dot-size);
+        border-radius: 50%;
+        background: var(--hae-color);
+        pointer-events: none;
+        z-index: 1;
+      }
+    }
+  }
+
+  @media -moz-pref("mod.highlight-active-essentials.loaded.hide-on-selected") {
+    .tabbrowser-tab[zen-essential="true"]:not([pending])[visuallyselected] {
+      & .tab-background {
+        outline: none !important;
+      }
+      & .tab-icon-image {
+        filter: none !important;
+      }
+      & .tab-content::after {
+        content: none !important;
+      }
+    }
+  }
+}
+
+/* ---- Unloaded Essentials ------------------------------------------------ */
+
+/* Firefox marks every unloaded tab with [pending] and adds [discarded] when
+   the user chose "Unload Tab". Both are mirrored onto .tab-icon-image, where
+   Firefox's own browser.tabs.fadeOut* rules also live, so setting opacity here
+   replaces the native fade instead of stacking with it. */
+@media not -moz-pref("mod.highlight-active-essentials.unloaded.style", "browser") {
+  @media not -moz-pref("mod.highlight-active-essentials.unloaded.scope", "explicit") {
+    .tabbrowser-tab[zen-essential="true"][pending] .tab-icon-image {
+      opacity: var(--hae-unloaded-opacity) !important;
+      filter: var(--hae-unloaded-filter) !important;
+      transition: opacity 0.4s ease, filter 0.4s ease !important;
+    }
+  }
+
+  @media -moz-pref("mod.highlight-active-essentials.unloaded.scope", "explicit") {
+    .tabbrowser-tab[zen-essential="true"][pending][discarded] .tab-icon-image {
+      opacity: var(--hae-unloaded-opacity) !important;
+      filter: var(--hae-unloaded-filter) !important;
+      transition: opacity 0.4s ease, filter 0.4s ease !important;
+    }
+  }
+
+  /* "Never dim" applies to every unloaded Essential regardless of scope. */
+  @media -moz-pref("mod.highlight-active-essentials.unloaded.style", "never") {
+    .tabbrowser-tab[zen-essential="true"][pending] .tab-icon-image {
+      opacity: 1 !important;
+      filter: none !important;
+    }
+  }
+}

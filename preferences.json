@@ -1,0 +1,114 @@
+[
+  { "type": "separator", "label": "Loaded Essentials" },
+  {
+    "property": "mod.highlight-active-essentials.loaded.style",
+    "label": "Marker",
+    "type": "dropdown",
+    "defaultValue": "ring",
+    "placeholder": false,
+    "options": [
+      { "label": "Ring around the tab", "value": "ring" },
+      { "label": "Glow behind the favicon", "value": "glow" },
+      { "label": "Dot in the corner", "value": "dot" },
+      { "label": "Ring and dot", "value": "ring-dot" },
+      { "label": "Off", "value": "off" }
+    ]
+  },
+  {
+    "property": "mod.highlight-active-essentials.loaded.color",
+    "label": "Color",
+    "type": "dropdown",
+    "defaultValue": "accent",
+    "placeholder": false,
+    "options": [
+      { "label": "Zen accent color", "value": "accent" },
+      { "label": "Custom", "value": "custom" }
+    ],
+    "conditions": [
+      { "not": { "property": "mod.highlight-active-essentials.loaded.style", "value": "off" } }
+    ]
+  },
+  {
+    "property": "mod.highlight-active-essentials.loaded.custom-color",
+    "label": "Custom color (any CSS color; leave the field to save)",
+    "type": "string",
+    "defaultValue": "#3ddc84",
+    "placeholder": "e.g. #3ddc84, rgb(61 220 132), lime",
+    "border": "value",
+    "conditions": [
+      { "if": { "property": "mod.highlight-active-essentials.loaded.color", "value": "custom" } }
+    ]
+  },
+  {
+    "property": "mod.highlight-active-essentials.loaded.strength",
+    "label": "Strength",
+    "type": "dropdown",
+    "defaultValue": "normal",
+    "placeholder": false,
+    "options": [
+      { "label": "Subtle", "value": "subtle" },
+      { "label": "Normal", "value": "normal" },
+      { "label": "Bold", "value": "bold" }
+    ],
+    "conditions": [
+      { "not": { "property": "mod.highlight-active-essentials.loaded.style", "value": "off" } }
+    ]
+  },
+  {
+    "property": "mod.highlight-active-essentials.loaded.hide-on-selected",
+    "label": "Hide the marker on the selected Essential",
+    "type": "checkbox",
+    "defaultValue": false,
+    "conditions": [
+      { "not": { "property": "mod.highlight-active-essentials.loaded.style", "value": "off" } }
+    ]
+  },
+
+  { "type": "separator", "label": "Unloaded Essentials" },
+  {
+    "property": "mod.highlight-active-essentials.unloaded.style",
+    "label": "Appearance",
+    "type": "dropdown",
+    "defaultValue": "dim",
+    "placeholder": false,
+    "options": [
+      { "label": "Dim", "value": "dim" },
+      { "label": "Dim and grayscale", "value": "dim-grayscale" },
+      { "label": "Grayscale only", "value": "grayscale" },
+      { "label": "Browser default (mod does nothing)", "value": "browser" },
+      { "label": "Never dim (always full color)", "value": "never" }
+    ]
+  },
+  {
+    "property": "mod.highlight-active-essentials.unloaded.opacity",
+    "label": "Dim amount",
+    "type": "dropdown",
+    "defaultValue": "medium",
+    "placeholder": false,
+    "options": [
+      { "label": "Light (70% opacity)", "value": "light" },
+      { "label": "Medium (45% opacity)", "value": "medium" },
+      { "label": "Heavy (25% opacity)", "value": "heavy" }
+    ],
+    "conditions": [
+      { "if": { "property": "mod.highlight-active-essentials.unloaded.style", "value": "dim" } },
+      { "if": { "property": "mod.highlight-active-essentials.unloaded.style", "value": "dim-grayscale" } }
+    ]
+  },
+  {
+    "property": "mod.highlight-active-essentials.unloaded.scope",
+    "label": "Which unloaded Essentials",
+    "type": "dropdown",
+    "defaultValue": "all",
+    "placeholder": false,
+    "options": [
+      { "label": "All unloaded", "value": "all" },
+      { "label": "Only ones unloaded with \"Unload Tab\"", "value": "explicit" }
+    ],
+    "conditions": [
+      { "if": { "property": "mod.highlight-active-essentials.unloaded.style", "value": "dim" } },
+      { "if": { "property": "mod.highlight-active-essentials.unloaded.style", "value": "dim-grayscale" } },
+      { "if": { "property": "mod.highlight-active-essentials.unloaded.style", "value": "grayscale" } }
+    ]
+  }
+]

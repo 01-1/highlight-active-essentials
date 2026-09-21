@@ -1,0 +1,12 @@
+{
+  "id": "highlight-active-essentials",
+  "name": "Highlight Active Essentials",
+  "description": "Mark loaded Essentials with a ring, glow, or dot, and dim or desaturate unloaded ones. Configurable and compatible with themes like Neo Zen.",
+  "version": "1.0.0",
+  "createdAt": "2026-09-21",
+  "updatedAt": "2026-09-21",
+  "style": "chrome.css",
+  "preferences": "preferences.json",
+  "tags": ["chrome", "tabs", "essentials"],
+  "fork": ["zen"]
+}
