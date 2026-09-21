@@ -26,11 +26,9 @@
   --hae-unloaded-opacity: 0.45;
   --hae-unloaded-filter: none;
 
-  /* A bare -moz-pref() on a string preference is true only when the string
-     is non-empty, so an empty field falls back to Zen's accent color. Sine
-     exposes the field's text as --mod-<property> on :root. */
-  @media -moz-pref("mod.highlight-active-essentials.loaded.marker-color") {
-    --hae-color: var(--mod-highlight-active-essentials-loaded-marker-color, var(--zen-primary-color));
+  @media -moz-pref("mod.highlight-active-essentials.loaded.color", "custom") {
+    /* Sine exposes string preferences as --mod-<property> on :root. */
+    --hae-color: var(--mod-highlight-active-essentials-loaded-custom-color, var(--zen-primary-color));
   }
 
   @media -moz-pref("mod.highlight-active-essentials.loaded.strength", "subtle") {
@@ -64,18 +62,20 @@
 
 @media not -moz-pref("mod.highlight-active-essentials.loaded.style", "off") {
   .tabbrowser-tab[zen-essential="true"]:not([pending]) {
-    /* Ring: the default, also part of "tab-glow" and "ring-dot". Inset so the
+    /* Ring: the default and part of "ring-dot". Inset so the
        Essentials grid's overflow: hidden never clips it. */
     @media not -moz-pref("mod.highlight-active-essentials.loaded.style", "glow") {
       @media not -moz-pref("mod.highlight-active-essentials.loaded.style", "dot") {
-        & .tab-background {
-          outline: var(--hae-ring-width) solid var(--hae-color) !important;
-          outline-offset: calc(-1 * var(--hae-ring-width)) !important;
+        @media not -moz-pref("mod.highlight-active-essentials.loaded.style", "tab-glow") {
+          & .tab-background {
+            outline: var(--hae-ring-width) solid var(--hae-color) !important;
+            outline-offset: calc(-1 * var(--hae-ring-width)) !important;
+          }
         }
       }
     }
 
-    /* Whole-tab glow: the background's silhouette (ring included) casts light. */
+    /* Whole-tab glow: the background's silhouette casts light without a ring. */
     @media -moz-pref("mod.highlight-active-essentials.loaded.style", "tab-glow") {
       & .tab-background {
         filter: drop-shadow(0 0 var(--hae-glow-radius) var(--hae-color)) !important;

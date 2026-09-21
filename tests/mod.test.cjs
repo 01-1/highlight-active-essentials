@@ -41,6 +41,10 @@ const targets = (d) => rule(d).split(',').map((s) => s.trim().split(/\s+/).at(-1
 const path_ = (d) => d.selectors.join(' ');
 
 test('package points at existing files and uses the mod id as the pref prefix', () => {
+  const homepage = new URL(theme.homepage);
+  assert.equal(homepage.origin, 'https://github.com');
+  assert.equal(homepage.pathname, `/01-1/${theme.id}`);
+  assert.ok(Date.parse(theme.updatedAt) > Date.parse(theme.createdAt));
   assert.ok(fs.existsSync(path.join(root, theme.style)));
   assert.ok(fs.existsSync(path.join(root, theme.preferences)));
   assert.equal(theme.preferences, 'preferences.json');
@@ -51,6 +55,7 @@ test('package points at existing files and uses the mod id as the pref prefix', 
       assert.ok(pref.options.some((o) => o.value === pref.defaultValue), pref.property);
       assert.equal(pref.placeholder, false, pref.property);
     }
+    if ((pref.conditions ?? []).some((c) => c.not) && pref.conditions.length > 1) assert.equal(pref.operator, 'AND', pref.property);
     for (const condition of pref.conditions ?? []) {
       const { property, value } = condition.if ?? condition.not;
       const referenced = byProperty.get(property);
@@ -66,7 +71,7 @@ test('every preference the stylesheet reads exists with a matching option', () =
   for (const [, property, value] of uses) {
     const pref = byProperty.get(property);
     assert.ok(pref, `unknown preference ${property}`);
-    if (value === undefined) assert.ok(['checkbox', 'string'].includes(pref.type), property);
+    if (value === undefined) assert.equal(pref.type, 'checkbox', property);
     else assert.ok(pref.options.some((o) => o.value === value), `${property}=${value}`);
   }
   for (const [, name] of css.matchAll(/var\(--mod-([a-z0-9-]+)/g)) {
@@ -77,7 +82,7 @@ test('every preference the stylesheet reads exists with a matching option', () =
 
 test('every non-default option and every checkbox changes something', () => {
   for (const pref of prefs) {
-    if (pref.type !== 'dropdown') assert.ok(css.includes(`-moz-pref("${pref.property}")`), pref.property);
+    if (pref.type === 'checkbox') assert.ok(css.includes(`-moz-pref("${pref.property}")`), pref.property);
     if (pref.type !== 'dropdown') continue;
     for (const { value } of pref.options) {
       if (value === pref.defaultValue) continue;
@@ -94,7 +99,6 @@ test('defaults are the fall-through: the sheet never needs the default value to 
     assert.ok(!positive.test(css), `${pref.property} relies on its default being written`);
   }
   assert.equal(byProperty.get(`${prefix}loaded.hide-on-selected`).defaultValue, false);
-  for (const pref of prefs.filter((p) => p.type === 'string')) assert.equal(pref.defaultValue, '', pref.property);
 });
 
 test('only touches properties that Zen, Firefox, and Neo Zen leave alone', () => {
@@ -129,6 +133,25 @@ test('loaded and unloaded rules cannot both match the same tab', () => {
     if (d.property === 'opacity') assert.ok(p.includes('[pending]'), p);
     else if (marker(d) && !p.includes('[pending] ') && !p.includes('[discarded]')) assert.ok(p.includes(':not([pending])'), p);
   }
+});
+
+test('whole-tab glow does not draw the ring', () => {
+  const outlines = decls.filter((d) => d.property === 'outline' && d.value.includes('--hae-color'));
+  assert.ok(outlines.length > 0, 'ring rule missing');
+  for (const d of outlines) {
+    assert.ok(
+      d.context.some((c) => c.startsWith('@media not') && c.includes('"tab-glow"')),
+      path_(d),
+    );
+  }
+});
+
+test('marker color stays valid after switching the marker off and back on', () => {
+  assert.match(css, /--hae-color:\s*var\(--zen-primary-color\)/);
+  assert.ok(!css.includes('loaded.marker-color'));
+  assert.match(css, /-moz-pref\("mod\.highlight-active-essentials\.loaded\.color", "custom"\)/);
+  assert.equal(byProperty.get(`${prefix}loaded.color`).defaultValue, 'accent');
+  assert.notEqual(byProperty.get(`${prefix}loaded.custom-color`).defaultValue.trim(), '');
 });
 
 test('explicit scope only dims [discarded] tabs and "never" restores full color', () => {

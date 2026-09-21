@@ -22,11 +22,12 @@ This folder is the complete mod source; there is no build step and no JavaScript
 | Setting | Options | Default |
 | --- | --- | --- |
 | Marker | Ring around the tab · Glow around the whole tab · Glow behind the favicon · Dot in the corner · Ring and dot · Off | Ring |
-| Color | Any CSS color, e.g. `#3ddc84`, `rgb(61 220 132)`, `lime`. Empty uses Zen's accent color. Leave the field to save it. | empty (Zen accent) |
+| Color | Zen accent color · Custom | Zen accent color |
+| Custom color | Any CSS color, e.g. `#3ddc84`, `rgb(61 220 132)`, `lime`. Leave the field to save it. | `#3ddc84` |
 | Strength | Subtle · Normal · Bold (ring width, glow radius, and dot size) | Normal |
 | Hide the marker on the selected Essential | Checkbox. The selected tab already has its own background. | Off |
 
-"Glow around the whole tab" keeps the ring and makes the tab's silhouette cast light in the marker color. An invalid color makes the marker disappear rather than fall back, so clear or fix the value if nothing shows.
+"Glow around the whole tab" makes the tab's silhouette cast light in the marker color without drawing a ring. An invalid custom color makes the marker disappear rather than fall back, so fix the value if nothing shows.
 
 ### Unloaded Essentials
 
@@ -54,11 +55,11 @@ Zen and themes such as Neo Zen already style Essentials heavily, often with `!im
 
 It never sets the tab element's own `opacity`, `visibility`, or `display` (Neo Zen animates those to collapse the Essentials grid), never sets `background`, `border`, or `box-shadow` on `.tab-background` (Neo Zen owns them), and never uses `.tab-background::before` or `::after` (Zen uses them for the selected-tab background and favicon glow). Dimming is applied to the favicon on the same element and property Firefox uses for its own unloaded-tab fade, so the two replace rather than stack.
 
-Settings are read with Firefox's `-moz-pref()` media queries, the same mechanism Zen and Neo Zen use, so nothing depends on Sine rebuilding the DOM and the mod works before Sine has written any preference. Only the color text uses Sine's `--mod-*` variable, which Sine refreshes whenever the field changes; whether the field is empty is still checked with `-moz-pref()`.
+Settings are read with Firefox's `-moz-pref()` media queries, the same mechanism Zen and Neo Zen use, so nothing depends on Sine rebuilding the DOM and the mod works before Sine has written any preference. Only the custom color uses Sine's `--mod-*` variable, which Sine refreshes whenever the field changes.
 
-### Known Sine limitation
+### Sine versions up to v2.3.4.1c
 
-Sine (up to at least v2.3.4.1c) evaluates a preference's `conditions` before the preference's element is added to the settings dialog, so dependent settings are always visible the first time the dialog opens and only hide or show correctly after any related setting changes. This affects every mod that uses `conditions`. It is why the mod uses a single color field with "empty means accent" instead of a dropdown plus a conditional field: whatever is visible always works.
+Those versions evaluate a setting's `conditions` before its element is added to the dialog, so dependent settings such as **Custom color** are visible the first time the dialog opens and only hide or show correctly after a related setting changes. This affects every mod that uses `conditions`; an upstream fix is prepared for review.
 
 Verified against [Zen's tab styles](https://github.com/zen-browser/desktop/blob/dev/src/zen/tabs/zen-tabs/vertical-tabs.css), [Firefox's tab styles](https://github.com/mozilla-firefox/firefox/blob/main/browser/themes/shared/tabbrowser/tabs.css), [Neo Zen](https://github.com/JustVibingWhileCoding/Neo-Zen), and [Sine's loader](https://github.com/CosmoCreeper/Sine/tree/main/src). Because it relies on browser-internal markup (`[zen-essential]`, `[pending]`, `[discarded]`), future browser changes may require an update.
 

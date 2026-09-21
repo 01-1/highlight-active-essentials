@@ -16,13 +16,29 @@
     ]
   },
   {
-    "property": "mod.highlight-active-essentials.loaded.marker-color",
-    "label": "Color (any CSS color; empty uses Zen's accent color; leave the field to save)",
-    "type": "string",
-    "defaultValue": "",
-    "placeholder": "Zen accent color",
-    "border": "value",
+    "property": "mod.highlight-active-essentials.loaded.color",
+    "label": "Color",
+    "type": "dropdown",
+    "defaultValue": "accent",
+    "placeholder": false,
+    "options": [
+      { "label": "Zen accent color", "value": "accent" },
+      { "label": "Custom", "value": "custom" }
+    ],
     "conditions": [
+      { "not": { "property": "mod.highlight-active-essentials.loaded.style", "value": "off" } }
+    ]
+  },
+  {
+    "property": "mod.highlight-active-essentials.loaded.custom-color",
+    "label": "Custom color (any CSS color; leave the field to save)",
+    "type": "string",
+    "defaultValue": "#3ddc84",
+    "placeholder": "e.g. #3ddc84, rgb(61 220 132), lime",
+    "border": "value",
+    "operator": "AND",
+    "conditions": [
+      { "if": { "property": "mod.highlight-active-essentials.loaded.color", "value": "custom" } },
       { "not": { "property": "mod.highlight-active-essentials.loaded.style", "value": "off" } }
     ]
   },
