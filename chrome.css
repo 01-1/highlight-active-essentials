@@ -5,8 +5,8 @@
  * update live in every window.
  *
  * Compatibility contract. This sheet only ever sets:
- *   .tabbrowser-tab      filter for the outside whole-tab glow
- *   .tab-background      outline, outline-offset; ::after for the overlay glow
+ *   .tabbrowser-tab      overflow for the outside whole-tab glow
+ *   .tab-background      outline, outline-offset; ::after for whole-tab glows
  *   .tab-icon-image      opacity, filter, transition
  *   .tab-stack           opacity, filter, transition
  *   .tab-content::after  the dot marker
@@ -71,14 +71,14 @@
 @media not -moz-pref("mod.tab-state-highlighter.unloaded.appearance", "browser") {
   @media not -moz-pref("mod.tab-state-highlighter.unloaded.target", "tab") {
     @media not -moz-pref("mod.tab-state-highlighter.unloaded.scope", "explicit") {
-      .tabbrowser-tab[pending] .tab-icon-image {
+      .tabbrowser-tab[zen-essential="true"][pending] .tab-icon-image {
         opacity: var(--tsh-unloaded-opacity) !important;
         filter: var(--tsh-unloaded-icon-filter) !important;
         transition: opacity 0.4s ease, filter 0.4s ease !important;
       }
     }
     @media -moz-pref("mod.tab-state-highlighter.unloaded.scope", "explicit") {
-      .tabbrowser-tab[pending][discarded] .tab-icon-image {
+      .tabbrowser-tab[zen-essential="true"][pending][discarded] .tab-icon-image {
         opacity: var(--tsh-unloaded-opacity) !important;
         filter: var(--tsh-unloaded-icon-filter) !important;
         transition: opacity 0.4s ease, filter 0.4s ease !important;
@@ -88,7 +88,7 @@
 
   @media -moz-pref("mod.tab-state-highlighter.unloaded.target", "tab") {
     @media not -moz-pref("mod.tab-state-highlighter.unloaded.scope", "explicit") {
-      .tabbrowser-tab[pending] {
+      .tabbrowser-tab[zen-essential="true"][pending] {
         & .tab-stack {
           opacity: var(--tsh-unloaded-opacity) !important;
           filter: var(--tsh-unloaded-stack-filter) !important;
@@ -101,7 +101,7 @@
       }
     }
     @media -moz-pref("mod.tab-state-highlighter.unloaded.scope", "explicit") {
-      .tabbrowser-tab[pending][discarded] {
+      .tabbrowser-tab[zen-essential="true"][pending][discarded] {
         & .tab-stack {
           opacity: var(--tsh-unloaded-opacity) !important;
           filter: var(--tsh-unloaded-stack-filter) !important;
@@ -117,7 +117,7 @@
 }
 
 @media -moz-pref("mod.tab-state-highlighter.unloaded.appearance", "never") {
-  .tabbrowser-tab[pending] {
+  .tabbrowser-tab[zen-essential="true"][pending] {
     & .tab-icon-image,
     & .tab-stack {
       opacity: 1 !important;
@@ -129,7 +129,7 @@
 /* ---- Loaded tab effect -------------------------------------------------- */
 
 @media not -moz-pref("mod.tab-state-highlighter.loaded.effect", "off") {
-  .tabbrowser-tab:not([pending]) {
+  .tabbrowser-tab[zen-essential="true"]:not([pending]) {
     @media not -moz-pref("mod.tab-state-highlighter.loaded.effect", "glow") {
       @media not -moz-pref("mod.tab-state-highlighter.loaded.effect", "dot") {
         @media not -moz-pref("mod.tab-state-highlighter.loaded.effect", "tab-glow") {
@@ -144,10 +144,19 @@
     }
 
     @media -moz-pref("mod.tab-state-highlighter.loaded.effect", "tab-glow") {
-      filter:
-        drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color))
-        drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color))
-        drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color)) !important;
+      overflow: visible !important;
+      & .tab-background::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: color-mix(in srgb, var(--tsh-loaded-glow-color) 20%, transparent);
+        box-shadow:
+          0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color),
+          0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color),
+          0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color);
+        pointer-events: none;
+      }
     }
 
     @media -moz-pref("mod.tab-state-highlighter.loaded.effect", "tab-overlay-glow") {
@@ -191,8 +200,7 @@
   }
 
   @media -moz-pref("mod.tab-state-highlighter.loaded.hide-on-selected") {
-    .tabbrowser-tab:not([pending])[visuallyselected] {
-      filter: none !important;
+    .tabbrowser-tab[zen-essential="true"]:not([pending])[visuallyselected] {
       & .tab-background {
         outline: none !important;
       }
@@ -213,7 +221,7 @@
 
 @media not -moz-pref("mod.tab-state-highlighter.unloaded.effect", "off") {
   @media not -moz-pref("mod.tab-state-highlighter.unloaded.effect", "same") {
-    .tabbrowser-tab[pending] {
+    .tabbrowser-tab[zen-essential="true"][pending] {
       @media -moz-pref("mod.tab-state-highlighter.unloaded.effect", "ring"),
              -moz-pref("mod.tab-state-highlighter.unloaded.effect", "ring-dot") {
         & .tab-background {
@@ -223,10 +231,19 @@
       }
 
       @media -moz-pref("mod.tab-state-highlighter.unloaded.effect", "tab-glow") {
-        filter:
-          drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-unloaded-glow-color))
-          drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-unloaded-glow-color))
-          drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-unloaded-glow-color)) !important;
+        overflow: visible !important;
+        & .tab-background::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          background: color-mix(in srgb, var(--tsh-unloaded-glow-color) 20%, transparent);
+          box-shadow:
+            0 0 var(--tsh-glow-radius) var(--tsh-unloaded-glow-color),
+            0 0 var(--tsh-glow-radius) var(--tsh-unloaded-glow-color),
+            0 0 var(--tsh-glow-radius) var(--tsh-unloaded-glow-color);
+          pointer-events: none;
+        }
       }
 
       @media -moz-pref("mod.tab-state-highlighter.unloaded.effect", "tab-overlay-glow") {
@@ -274,7 +291,7 @@
   /* "Same as loaded tabs" copies style, color, and numeric effect values. */
   @media -moz-pref("mod.tab-state-highlighter.unloaded.effect", "same") {
     @media not -moz-pref("mod.tab-state-highlighter.loaded.effect", "off") {
-      .tabbrowser-tab[pending] {
+      .tabbrowser-tab[zen-essential="true"][pending] {
         @media not -moz-pref("mod.tab-state-highlighter.loaded.effect", "glow") {
           @media not -moz-pref("mod.tab-state-highlighter.loaded.effect", "dot") {
             @media not -moz-pref("mod.tab-state-highlighter.loaded.effect", "tab-glow") {
@@ -289,10 +306,19 @@
         }
 
         @media -moz-pref("mod.tab-state-highlighter.loaded.effect", "tab-glow") {
-          filter:
-            drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color))
-            drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color))
-            drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color)) !important;
+          overflow: visible !important;
+          & .tab-background::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: color-mix(in srgb, var(--tsh-loaded-glow-color) 20%, transparent);
+            box-shadow:
+              0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color),
+              0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color),
+              0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color);
+            pointer-events: none;
+          }
         }
 
         @media -moz-pref("mod.tab-state-highlighter.loaded.effect", "tab-overlay-glow") {
@@ -339,8 +365,7 @@
   }
 
   @media -moz-pref("mod.tab-state-highlighter.unloaded.hide-on-selected") {
-    .tabbrowser-tab[pending][visuallyselected] {
-      filter: none !important;
+    .tabbrowser-tab[zen-essential="true"][pending][visuallyselected] {
       & .tab-background {
         outline: none !important;
       }
@@ -352,6 +377,720 @@
       }
       & .tab-content::after {
         content: none !important;
+      }
+    }
+  }
+}
+
+/* ==== Regular-tab profile =============================================== */
+
+/* ---- Values chosen by regular-tab preferences ------------------------- */
+
+.tabbrowser-tab:not([zen-essential="true"]) {
+  --tsh-tabs-loaded-color: var(--tsh-loaded-color);
+  --tsh-tabs-loaded-ring-width: max(0px, calc(var(--mod-tab-state-highlighter-tabs-loaded-ring-width, 2) * 1px));
+  --tsh-tabs-loaded-glow-level: max(0, var(--mod-tab-state-highlighter-tabs-loaded-glow-strength, 100));
+  --tsh-tabs-loaded-glow-opacity: calc(100% * var(--tsh-tabs-loaded-glow-level) / (var(--tsh-tabs-loaded-glow-level) + 50));
+  --tsh-tabs-loaded-glow-color: color-mix(in srgb, var(--tsh-tabs-loaded-color) var(--tsh-tabs-loaded-glow-opacity), transparent);
+  --tsh-tabs-loaded-dot-size: max(0px, calc(var(--mod-tab-state-highlighter-tabs-loaded-dot-size, 5) * 1px));
+
+  --tsh-tabs-unloaded-color: var(--tsh-unloaded-color);
+  --tsh-tabs-unloaded-ring-width: max(0px, calc(var(--mod-tab-state-highlighter-tabs-unloaded-ring-width, 2) * 1px));
+  --tsh-tabs-unloaded-glow-level: max(0, var(--mod-tab-state-highlighter-tabs-unloaded-glow-strength, 100));
+  --tsh-tabs-unloaded-glow-opacity: calc(100% * var(--tsh-tabs-unloaded-glow-level) / (var(--tsh-tabs-unloaded-glow-level) + 50));
+  --tsh-tabs-unloaded-glow-color: color-mix(in srgb, var(--tsh-tabs-unloaded-color) var(--tsh-tabs-unloaded-glow-opacity), transparent);
+  --tsh-tabs-unloaded-dot-size: max(0px, calc(var(--mod-tab-state-highlighter-tabs-unloaded-dot-size, 5) * 1px));
+
+  --tsh-glow-radius: 5px;
+  --tsh-tabs-unloaded-opacity: var(--tsh-unloaded-opacity);
+  --tsh-tabs-unloaded-icon-filter: var(--tsh-unloaded-icon-filter);
+  --tsh-tabs-unloaded-stack-filter: var(--tsh-unloaded-stack-filter);
+
+  @media -moz-pref("mod.tab-state-highlighter.tabs.loaded.color", "accent") {
+    --tsh-tabs-loaded-color: var(--zen-primary-color);
+  }
+  @media -moz-pref("mod.tab-state-highlighter.tabs.loaded.color", "custom") {
+    --tsh-tabs-loaded-color: var(--mod-tab-state-highlighter-tabs-loaded-custom-color, #3ddc84);
+  }
+  @media -moz-pref("mod.tab-state-highlighter.tabs.unloaded.color", "same") {
+    --tsh-tabs-unloaded-color: var(--tsh-tabs-loaded-color);
+  }
+  @media -moz-pref("mod.tab-state-highlighter.tabs.unloaded.color", "accent") {
+    --tsh-tabs-unloaded-color: var(--zen-primary-color);
+  }
+  @media -moz-pref("mod.tab-state-highlighter.tabs.unloaded.color", "custom") {
+    --tsh-tabs-unloaded-color: var(--mod-tab-state-highlighter-tabs-unloaded-custom-color, #ff8a3d);
+  }
+
+  @media not -moz-pref("mod.tab-state-highlighter.tabs.unloaded.appearance", "same-essentials") {
+    --tsh-tabs-unloaded-opacity: 0.45;
+    --tsh-tabs-unloaded-icon-filter: blur(0);
+    --tsh-tabs-unloaded-stack-filter: blur(0);
+  }
+
+  @media -moz-pref("mod.tab-state-highlighter.tabs.unloaded.opacity", "light") {
+    --tsh-tabs-unloaded-opacity: 0.7;
+  }
+  @media -moz-pref("mod.tab-state-highlighter.tabs.unloaded.opacity", "heavy") {
+    --tsh-tabs-unloaded-opacity: 0.25;
+  }
+  @media -moz-pref("mod.tab-state-highlighter.tabs.unloaded.appearance", "grayscale"),
+         -moz-pref("mod.tab-state-highlighter.tabs.unloaded.appearance", "never") {
+    --tsh-tabs-unloaded-opacity: 1;
+  }
+  @media -moz-pref("mod.tab-state-highlighter.tabs.unloaded.appearance", "dim-grayscale"),
+         -moz-pref("mod.tab-state-highlighter.tabs.unloaded.appearance", "grayscale") {
+    --tsh-tabs-unloaded-icon-filter: grayscale(1);
+    --tsh-tabs-unloaded-stack-filter: grayscale(1);
+  }
+  @media -moz-pref("mod.tab-state-highlighter.tabs.unloaded.target", "tab") {
+    --tsh-tabs-unloaded-icon-filter: blur(0);
+  }
+}
+
+/* ---- Independent regular-tab settings --------------------------------- */
+
+@media not -moz-pref("mod.tab-state-highlighter.tabs.unloaded.appearance", "same-essentials") {
+  /* ---- Unloaded tab fading ------------------------------------------------ */
+
+  @media not -moz-pref("mod.tab-state-highlighter.tabs.unloaded.appearance", "browser") {
+    @media not -moz-pref("mod.tab-state-highlighter.tabs.unloaded.target", "tab") {
+      @media not -moz-pref("mod.tab-state-highlighter.tabs.unloaded.scope", "explicit") {
+        .tabbrowser-tab:not([zen-essential="true"])[pending] .tab-icon-image {
+          opacity: var(--tsh-tabs-unloaded-opacity) !important;
+          filter: var(--tsh-tabs-unloaded-icon-filter) !important;
+          transition: opacity 0.4s ease, filter 0.4s ease !important;
+        }
+      }
+      @media -moz-pref("mod.tab-state-highlighter.tabs.unloaded.scope", "explicit") {
+        .tabbrowser-tab:not([zen-essential="true"])[pending][discarded] .tab-icon-image {
+          opacity: var(--tsh-tabs-unloaded-opacity) !important;
+          filter: var(--tsh-tabs-unloaded-icon-filter) !important;
+          transition: opacity 0.4s ease, filter 0.4s ease !important;
+        }
+      }
+    }
+
+    @media -moz-pref("mod.tab-state-highlighter.tabs.unloaded.target", "tab") {
+      @media not -moz-pref("mod.tab-state-highlighter.tabs.unloaded.scope", "explicit") {
+        .tabbrowser-tab:not([zen-essential="true"])[pending] {
+          & .tab-stack {
+            opacity: var(--tsh-tabs-unloaded-opacity) !important;
+            filter: var(--tsh-tabs-unloaded-stack-filter) !important;
+            transition: opacity 0.4s ease, filter 0.4s ease !important;
+          }
+          & .tab-icon-image {
+            opacity: 1 !important;
+            filter: none !important;
+          }
+        }
+      }
+      @media -moz-pref("mod.tab-state-highlighter.tabs.unloaded.scope", "explicit") {
+        .tabbrowser-tab:not([zen-essential="true"])[pending][discarded] {
+          & .tab-stack {
+            opacity: var(--tsh-tabs-unloaded-opacity) !important;
+            filter: var(--tsh-tabs-unloaded-stack-filter) !important;
+            transition: opacity 0.4s ease, filter 0.4s ease !important;
+          }
+          & .tab-icon-image {
+            opacity: 1 !important;
+            filter: none !important;
+          }
+        }
+      }
+    }
+  }
+
+  @media -moz-pref("mod.tab-state-highlighter.tabs.unloaded.appearance", "never") {
+    .tabbrowser-tab:not([zen-essential="true"])[pending] {
+      & .tab-icon-image,
+      & .tab-stack {
+        opacity: 1 !important;
+        filter: none !important;
+      }
+    }
+  }
+}
+
+@media not -moz-pref("mod.tab-state-highlighter.tabs.loaded.effect", "same-essentials") {
+  /* ---- Loaded tab effect -------------------------------------------------- */
+
+  @media not -moz-pref("mod.tab-state-highlighter.tabs.loaded.effect", "off") {
+    .tabbrowser-tab:not([zen-essential="true"]):not([pending]) {
+      @media not -moz-pref("mod.tab-state-highlighter.tabs.loaded.effect", "glow") {
+        @media not -moz-pref("mod.tab-state-highlighter.tabs.loaded.effect", "dot") {
+          @media not -moz-pref("mod.tab-state-highlighter.tabs.loaded.effect", "tab-glow") {
+            @media not -moz-pref("mod.tab-state-highlighter.tabs.loaded.effect", "tab-overlay-glow") {
+              & .tab-background {
+                outline: var(--tsh-tabs-loaded-ring-width) solid var(--tsh-tabs-loaded-color) !important;
+                outline-offset: calc(-1 * var(--tsh-tabs-loaded-ring-width)) !important;
+              }
+            }
+          }
+        }
+      }
+
+      @media -moz-pref("mod.tab-state-highlighter.tabs.loaded.effect", "tab-glow") {
+        overflow: visible !important;
+        & .tab-background::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          background: color-mix(in srgb, var(--tsh-tabs-loaded-glow-color) 20%, transparent);
+          box-shadow:
+            0 0 var(--tsh-glow-radius) var(--tsh-tabs-loaded-glow-color),
+            0 0 var(--tsh-glow-radius) var(--tsh-tabs-loaded-glow-color),
+            0 0 var(--tsh-glow-radius) var(--tsh-tabs-loaded-glow-color);
+          pointer-events: none;
+        }
+      }
+
+      @media -moz-pref("mod.tab-state-highlighter.tabs.loaded.effect", "tab-overlay-glow") {
+        & .tab-background::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          background: radial-gradient(ellipse at center, var(--tsh-tabs-loaded-glow-color) 0%, transparent 78%);
+          pointer-events: none;
+        }
+      }
+
+      @media -moz-pref("mod.tab-state-highlighter.tabs.loaded.effect", "glow") {
+        & .tab-icon-image {
+          filter:
+            drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-tabs-loaded-glow-color))
+            drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-tabs-loaded-glow-color))
+            drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-tabs-loaded-glow-color)) !important;
+        }
+      }
+
+      @media -moz-pref("mod.tab-state-highlighter.tabs.loaded.effect", "dot"),
+             -moz-pref("mod.tab-state-highlighter.tabs.loaded.effect", "ring-dot") {
+        & .tab-content {
+          position: relative !important;
+        }
+        & .tab-content::after {
+          content: "";
+          position: absolute;
+          top: 3px;
+          inset-inline-end: 3px;
+          width: var(--tsh-tabs-loaded-dot-size);
+          height: var(--tsh-tabs-loaded-dot-size);
+          border-radius: 50%;
+          background: var(--tsh-tabs-loaded-color);
+          pointer-events: none;
+          z-index: 1;
+        }
+      }
+    }
+
+    @media -moz-pref("mod.tab-state-highlighter.tabs.loaded.hide-on-selected") {
+      .tabbrowser-tab:not([zen-essential="true"]):not([pending])[visuallyselected] {
+        & .tab-background {
+          outline: none !important;
+        }
+        & .tab-background::after {
+          content: none !important;
+        }
+        & .tab-icon-image {
+          filter: none !important;
+        }
+        & .tab-content::after {
+          content: none !important;
+        }
+      }
+    }
+  }
+}
+
+@media not -moz-pref("mod.tab-state-highlighter.tabs.unloaded.effect", "same-essentials") {
+  /* ---- Unloaded tab effect: independent settings ------------------------- */
+
+  @media not -moz-pref("mod.tab-state-highlighter.tabs.unloaded.effect", "off") {
+    @media not -moz-pref("mod.tab-state-highlighter.tabs.unloaded.effect", "same") {
+      .tabbrowser-tab:not([zen-essential="true"])[pending] {
+        @media -moz-pref("mod.tab-state-highlighter.tabs.unloaded.effect", "ring"),
+               -moz-pref("mod.tab-state-highlighter.tabs.unloaded.effect", "ring-dot") {
+          & .tab-background {
+            outline: var(--tsh-tabs-unloaded-ring-width) solid var(--tsh-tabs-unloaded-color) !important;
+            outline-offset: calc(-1 * var(--tsh-tabs-unloaded-ring-width)) !important;
+          }
+        }
+
+        @media -moz-pref("mod.tab-state-highlighter.tabs.unloaded.effect", "tab-glow") {
+          overflow: visible !important;
+          & .tab-background::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: color-mix(in srgb, var(--tsh-tabs-unloaded-glow-color) 20%, transparent);
+            box-shadow:
+              0 0 var(--tsh-glow-radius) var(--tsh-tabs-unloaded-glow-color),
+              0 0 var(--tsh-glow-radius) var(--tsh-tabs-unloaded-glow-color),
+              0 0 var(--tsh-glow-radius) var(--tsh-tabs-unloaded-glow-color);
+            pointer-events: none;
+          }
+        }
+
+        @media -moz-pref("mod.tab-state-highlighter.tabs.unloaded.effect", "tab-overlay-glow") {
+          & .tab-background::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: radial-gradient(ellipse at center, var(--tsh-tabs-unloaded-glow-color) 0%, transparent 78%);
+            pointer-events: none;
+          }
+        }
+
+        @media -moz-pref("mod.tab-state-highlighter.tabs.unloaded.effect", "glow") {
+          & .tab-icon-image {
+            filter:
+              var(--tsh-tabs-unloaded-icon-filter)
+              drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-tabs-unloaded-glow-color))
+              drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-tabs-unloaded-glow-color))
+              drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-tabs-unloaded-glow-color)) !important;
+          }
+        }
+
+        @media -moz-pref("mod.tab-state-highlighter.tabs.unloaded.effect", "dot"),
+               -moz-pref("mod.tab-state-highlighter.tabs.unloaded.effect", "ring-dot") {
+          & .tab-content {
+            position: relative !important;
+          }
+          & .tab-content::after {
+            content: "";
+            position: absolute;
+            top: 3px;
+            inset-inline-end: 3px;
+            width: var(--tsh-tabs-unloaded-dot-size);
+            height: var(--tsh-tabs-unloaded-dot-size);
+            border-radius: 50%;
+            background: var(--tsh-tabs-unloaded-color);
+            pointer-events: none;
+            z-index: 1;
+          }
+        }
+      }
+    }
+
+    /* "Same as loaded tabs" copies style, color, and numeric effect values. */
+    @media -moz-pref("mod.tab-state-highlighter.tabs.unloaded.effect", "same") {
+      @media not -moz-pref("mod.tab-state-highlighter.tabs.loaded.effect", "off") {
+        .tabbrowser-tab:not([zen-essential="true"])[pending] {
+          @media not -moz-pref("mod.tab-state-highlighter.tabs.loaded.effect", "glow") {
+            @media not -moz-pref("mod.tab-state-highlighter.tabs.loaded.effect", "dot") {
+              @media not -moz-pref("mod.tab-state-highlighter.tabs.loaded.effect", "tab-glow") {
+                @media not -moz-pref("mod.tab-state-highlighter.tabs.loaded.effect", "tab-overlay-glow") {
+                  & .tab-background {
+                    outline: var(--tsh-tabs-loaded-ring-width) solid var(--tsh-tabs-loaded-color) !important;
+                    outline-offset: calc(-1 * var(--tsh-tabs-loaded-ring-width)) !important;
+                  }
+                }
+              }
+            }
+          }
+
+          @media -moz-pref("mod.tab-state-highlighter.tabs.loaded.effect", "tab-glow") {
+            overflow: visible !important;
+            & .tab-background::after {
+              content: "";
+              position: absolute;
+              inset: 0;
+              border-radius: inherit;
+              background: color-mix(in srgb, var(--tsh-tabs-loaded-glow-color) 20%, transparent);
+              box-shadow:
+                0 0 var(--tsh-glow-radius) var(--tsh-tabs-loaded-glow-color),
+                0 0 var(--tsh-glow-radius) var(--tsh-tabs-loaded-glow-color),
+                0 0 var(--tsh-glow-radius) var(--tsh-tabs-loaded-glow-color);
+              pointer-events: none;
+            }
+          }
+
+          @media -moz-pref("mod.tab-state-highlighter.tabs.loaded.effect", "tab-overlay-glow") {
+            & .tab-background::after {
+              content: "";
+              position: absolute;
+              inset: 0;
+              border-radius: inherit;
+              background: radial-gradient(ellipse at center, var(--tsh-tabs-loaded-glow-color) 0%, transparent 78%);
+              pointer-events: none;
+            }
+          }
+
+          @media -moz-pref("mod.tab-state-highlighter.tabs.loaded.effect", "glow") {
+            & .tab-icon-image {
+              filter:
+                var(--tsh-tabs-unloaded-icon-filter)
+                drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-tabs-loaded-glow-color))
+                drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-tabs-loaded-glow-color))
+                drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-tabs-loaded-glow-color)) !important;
+            }
+          }
+
+          @media -moz-pref("mod.tab-state-highlighter.tabs.loaded.effect", "dot"),
+                 -moz-pref("mod.tab-state-highlighter.tabs.loaded.effect", "ring-dot") {
+            & .tab-content {
+              position: relative !important;
+            }
+            & .tab-content::after {
+              content: "";
+              position: absolute;
+              top: 3px;
+              inset-inline-end: 3px;
+              width: var(--tsh-tabs-loaded-dot-size);
+              height: var(--tsh-tabs-loaded-dot-size);
+              border-radius: 50%;
+              background: var(--tsh-tabs-loaded-color);
+              pointer-events: none;
+              z-index: 1;
+            }
+          }
+        }
+      }
+    }
+
+    @media -moz-pref("mod.tab-state-highlighter.tabs.unloaded.hide-on-selected") {
+      .tabbrowser-tab:not([zen-essential="true"])[pending][visuallyselected] {
+        & .tab-background {
+          outline: none !important;
+        }
+        & .tab-background::after {
+          content: none !important;
+        }
+        & .tab-icon-image {
+          filter: var(--tsh-tabs-unloaded-icon-filter) !important;
+        }
+        & .tab-content::after {
+          content: none !important;
+        }
+      }
+    }
+  }
+}
+
+/* ---- Regular-tab copy options ------------------------------------------ */
+
+@media -moz-pref("mod.tab-state-highlighter.tabs.unloaded.appearance", "same-essentials") {
+  /* ---- Unloaded tab fading ------------------------------------------------ */
+
+  @media not -moz-pref("mod.tab-state-highlighter.unloaded.appearance", "browser") {
+    @media not -moz-pref("mod.tab-state-highlighter.unloaded.target", "tab") {
+      @media not -moz-pref("mod.tab-state-highlighter.unloaded.scope", "explicit") {
+        .tabbrowser-tab:not([zen-essential="true"])[pending] .tab-icon-image {
+          opacity: var(--tsh-unloaded-opacity) !important;
+          filter: var(--tsh-unloaded-icon-filter) !important;
+          transition: opacity 0.4s ease, filter 0.4s ease !important;
+        }
+      }
+      @media -moz-pref("mod.tab-state-highlighter.unloaded.scope", "explicit") {
+        .tabbrowser-tab:not([zen-essential="true"])[pending][discarded] .tab-icon-image {
+          opacity: var(--tsh-unloaded-opacity) !important;
+          filter: var(--tsh-unloaded-icon-filter) !important;
+          transition: opacity 0.4s ease, filter 0.4s ease !important;
+        }
+      }
+    }
+
+    @media -moz-pref("mod.tab-state-highlighter.unloaded.target", "tab") {
+      @media not -moz-pref("mod.tab-state-highlighter.unloaded.scope", "explicit") {
+        .tabbrowser-tab:not([zen-essential="true"])[pending] {
+          & .tab-stack {
+            opacity: var(--tsh-unloaded-opacity) !important;
+            filter: var(--tsh-unloaded-stack-filter) !important;
+            transition: opacity 0.4s ease, filter 0.4s ease !important;
+          }
+          & .tab-icon-image {
+            opacity: 1 !important;
+            filter: none !important;
+          }
+        }
+      }
+      @media -moz-pref("mod.tab-state-highlighter.unloaded.scope", "explicit") {
+        .tabbrowser-tab:not([zen-essential="true"])[pending][discarded] {
+          & .tab-stack {
+            opacity: var(--tsh-unloaded-opacity) !important;
+            filter: var(--tsh-unloaded-stack-filter) !important;
+            transition: opacity 0.4s ease, filter 0.4s ease !important;
+          }
+          & .tab-icon-image {
+            opacity: 1 !important;
+            filter: none !important;
+          }
+        }
+      }
+    }
+  }
+
+  @media -moz-pref("mod.tab-state-highlighter.unloaded.appearance", "never") {
+    .tabbrowser-tab:not([zen-essential="true"])[pending] {
+      & .tab-icon-image,
+      & .tab-stack {
+        opacity: 1 !important;
+        filter: none !important;
+      }
+    }
+  }
+}
+
+@media -moz-pref("mod.tab-state-highlighter.tabs.loaded.effect", "same-essentials") {
+  /* ---- Loaded tab effect -------------------------------------------------- */
+
+  @media not -moz-pref("mod.tab-state-highlighter.loaded.effect", "off") {
+    .tabbrowser-tab:not([zen-essential="true"]):not([pending]) {
+      @media not -moz-pref("mod.tab-state-highlighter.loaded.effect", "glow") {
+        @media not -moz-pref("mod.tab-state-highlighter.loaded.effect", "dot") {
+          @media not -moz-pref("mod.tab-state-highlighter.loaded.effect", "tab-glow") {
+            @media not -moz-pref("mod.tab-state-highlighter.loaded.effect", "tab-overlay-glow") {
+              & .tab-background {
+                outline: var(--tsh-loaded-ring-width) solid var(--tsh-loaded-color) !important;
+                outline-offset: calc(-1 * var(--tsh-loaded-ring-width)) !important;
+              }
+            }
+          }
+        }
+      }
+
+      @media -moz-pref("mod.tab-state-highlighter.loaded.effect", "tab-glow") {
+        overflow: visible !important;
+        & .tab-background::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          background: color-mix(in srgb, var(--tsh-loaded-glow-color) 20%, transparent);
+          box-shadow:
+            0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color),
+            0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color),
+            0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color);
+          pointer-events: none;
+        }
+      }
+
+      @media -moz-pref("mod.tab-state-highlighter.loaded.effect", "tab-overlay-glow") {
+        & .tab-background::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          background: radial-gradient(ellipse at center, var(--tsh-loaded-glow-color) 0%, transparent 78%);
+          pointer-events: none;
+        }
+      }
+
+      @media -moz-pref("mod.tab-state-highlighter.loaded.effect", "glow") {
+        & .tab-icon-image {
+          filter:
+            drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color))
+            drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color))
+            drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color)) !important;
+        }
+      }
+
+      @media -moz-pref("mod.tab-state-highlighter.loaded.effect", "dot"),
+             -moz-pref("mod.tab-state-highlighter.loaded.effect", "ring-dot") {
+        & .tab-content {
+          position: relative !important;
+        }
+        & .tab-content::after {
+          content: "";
+          position: absolute;
+          top: 3px;
+          inset-inline-end: 3px;
+          width: var(--tsh-loaded-dot-size);
+          height: var(--tsh-loaded-dot-size);
+          border-radius: 50%;
+          background: var(--tsh-loaded-color);
+          pointer-events: none;
+          z-index: 1;
+        }
+      }
+    }
+
+    @media -moz-pref("mod.tab-state-highlighter.tabs.loaded.hide-on-selected") {
+      .tabbrowser-tab:not([zen-essential="true"]):not([pending])[visuallyselected] {
+        & .tab-background {
+          outline: none !important;
+        }
+        & .tab-background::after {
+          content: none !important;
+        }
+        & .tab-icon-image {
+          filter: none !important;
+        }
+        & .tab-content::after {
+          content: none !important;
+        }
+      }
+    }
+  }
+}
+
+@media -moz-pref("mod.tab-state-highlighter.tabs.unloaded.effect", "same-essentials") {
+  /* ---- Unloaded tab effect: independent settings ------------------------- */
+
+  @media not -moz-pref("mod.tab-state-highlighter.unloaded.effect", "off") {
+    @media not -moz-pref("mod.tab-state-highlighter.unloaded.effect", "same") {
+      .tabbrowser-tab:not([zen-essential="true"])[pending] {
+        @media -moz-pref("mod.tab-state-highlighter.unloaded.effect", "ring"),
+               -moz-pref("mod.tab-state-highlighter.unloaded.effect", "ring-dot") {
+          & .tab-background {
+            outline: var(--tsh-unloaded-ring-width) solid var(--tsh-unloaded-color) !important;
+            outline-offset: calc(-1 * var(--tsh-unloaded-ring-width)) !important;
+          }
+        }
+
+        @media -moz-pref("mod.tab-state-highlighter.unloaded.effect", "tab-glow") {
+          overflow: visible !important;
+          & .tab-background::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: color-mix(in srgb, var(--tsh-unloaded-glow-color) 20%, transparent);
+            box-shadow:
+              0 0 var(--tsh-glow-radius) var(--tsh-unloaded-glow-color),
+              0 0 var(--tsh-glow-radius) var(--tsh-unloaded-glow-color),
+              0 0 var(--tsh-glow-radius) var(--tsh-unloaded-glow-color);
+            pointer-events: none;
+          }
+        }
+
+        @media -moz-pref("mod.tab-state-highlighter.unloaded.effect", "tab-overlay-glow") {
+          & .tab-background::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: radial-gradient(ellipse at center, var(--tsh-unloaded-glow-color) 0%, transparent 78%);
+            pointer-events: none;
+          }
+        }
+
+        @media -moz-pref("mod.tab-state-highlighter.unloaded.effect", "glow") {
+          & .tab-icon-image {
+            filter:
+              var(--tsh-unloaded-icon-filter)
+              drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-unloaded-glow-color))
+              drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-unloaded-glow-color))
+              drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-unloaded-glow-color)) !important;
+          }
+        }
+
+        @media -moz-pref("mod.tab-state-highlighter.unloaded.effect", "dot"),
+               -moz-pref("mod.tab-state-highlighter.unloaded.effect", "ring-dot") {
+          & .tab-content {
+            position: relative !important;
+          }
+          & .tab-content::after {
+            content: "";
+            position: absolute;
+            top: 3px;
+            inset-inline-end: 3px;
+            width: var(--tsh-unloaded-dot-size);
+            height: var(--tsh-unloaded-dot-size);
+            border-radius: 50%;
+            background: var(--tsh-unloaded-color);
+            pointer-events: none;
+            z-index: 1;
+          }
+        }
+      }
+    }
+
+    /* "Same as loaded tabs" copies style, color, and numeric effect values. */
+    @media -moz-pref("mod.tab-state-highlighter.unloaded.effect", "same") {
+      @media not -moz-pref("mod.tab-state-highlighter.loaded.effect", "off") {
+        .tabbrowser-tab:not([zen-essential="true"])[pending] {
+          @media not -moz-pref("mod.tab-state-highlighter.loaded.effect", "glow") {
+            @media not -moz-pref("mod.tab-state-highlighter.loaded.effect", "dot") {
+              @media not -moz-pref("mod.tab-state-highlighter.loaded.effect", "tab-glow") {
+                @media not -moz-pref("mod.tab-state-highlighter.loaded.effect", "tab-overlay-glow") {
+                  & .tab-background {
+                    outline: var(--tsh-loaded-ring-width) solid var(--tsh-loaded-color) !important;
+                    outline-offset: calc(-1 * var(--tsh-loaded-ring-width)) !important;
+                  }
+                }
+              }
+            }
+          }
+
+          @media -moz-pref("mod.tab-state-highlighter.loaded.effect", "tab-glow") {
+            overflow: visible !important;
+            & .tab-background::after {
+              content: "";
+              position: absolute;
+              inset: 0;
+              border-radius: inherit;
+              background: color-mix(in srgb, var(--tsh-loaded-glow-color) 20%, transparent);
+              box-shadow:
+                0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color),
+                0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color),
+                0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color);
+              pointer-events: none;
+            }
+          }
+
+          @media -moz-pref("mod.tab-state-highlighter.loaded.effect", "tab-overlay-glow") {
+            & .tab-background::after {
+              content: "";
+              position: absolute;
+              inset: 0;
+              border-radius: inherit;
+              background: radial-gradient(ellipse at center, var(--tsh-loaded-glow-color) 0%, transparent 78%);
+              pointer-events: none;
+            }
+          }
+
+          @media -moz-pref("mod.tab-state-highlighter.loaded.effect", "glow") {
+            & .tab-icon-image {
+              filter:
+                var(--tsh-unloaded-icon-filter)
+                drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color))
+                drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color))
+                drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color)) !important;
+            }
+          }
+
+          @media -moz-pref("mod.tab-state-highlighter.loaded.effect", "dot"),
+                 -moz-pref("mod.tab-state-highlighter.loaded.effect", "ring-dot") {
+            & .tab-content {
+              position: relative !important;
+            }
+            & .tab-content::after {
+              content: "";
+              position: absolute;
+              top: 3px;
+              inset-inline-end: 3px;
+              width: var(--tsh-loaded-dot-size);
+              height: var(--tsh-loaded-dot-size);
+              border-radius: 50%;
+              background: var(--tsh-loaded-color);
+              pointer-events: none;
+              z-index: 1;
+            }
+          }
+        }
+      }
+    }
+
+    @media -moz-pref("mod.tab-state-highlighter.tabs.unloaded.hide-on-selected") {
+      .tabbrowser-tab:not([zen-essential="true"])[pending][visuallyselected] {
+        & .tab-background {
+          outline: none !important;
+        }
+        & .tab-background::after {
+          content: none !important;
+        }
+        & .tab-icon-image {
+          filter: var(--tsh-unloaded-icon-filter) !important;
+        }
+        & .tab-content::after {
+          content: none !important;
+        }
       }
     }
   }

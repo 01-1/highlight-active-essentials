@@ -95,15 +95,21 @@ test('every non-default dropdown option and checkbox changes the stylesheet', ()
     if (pref.type !== 'dropdown') continue;
     for (const { value } of pref.options) {
       if (value === pref.defaultValue) continue;
-      assert.ok(css.includes(`-moz-pref("${pref.property}", "${value}")`), `${pref.property}=${value}`);
+      const positive = `-moz-pref("${pref.property}", "${value}")`;
+      const negative = `not -moz-pref("${pref.property}", "${value}")`;
+      const implicitRing = value === 'ring' && pref.property.endsWith('.effect');
+      const implicitDim = value === 'dim' && pref.property.endsWith('.appearance');
+      assert.ok(css.includes(positive) || css.includes(negative) || implicitRing || implicitDim, `${pref.property}=${value}`);
     }
   }
 });
 
-test('default dropdown values are fall-through behavior', () => {
+test('defaults fall through except explicit cross-profile copy defaults', () => {
   for (const pref of prefs.filter((p) => p.type === 'dropdown')) {
     const positive = new RegExp(`(^|[^t] )-moz-pref\\("${pref.property.replaceAll('.', '\\.')}", "${pref.defaultValue}"\\)`, 'm');
-    assert.ok(!positive.test(css), `${pref.property} relies on its default being written`);
+    if (pref.defaultValue !== 'same-essentials') {
+      assert.ok(!positive.test(css), `${pref.property} relies on its default being written`);
+    }
   }
   assert.equal(byProperty.get(`${prefix}loaded.effect`).defaultValue, 'ring');
   assert.equal(byProperty.get(`${prefix}unloaded.effect`).defaultValue, 'off');
@@ -112,7 +118,7 @@ test('default dropdown values are fall-through behavior', () => {
 
 test('the stylesheet only changes the documented tab sub-elements', () => {
   const allowed = {
-    '.tabbrowser-tab': ['filter'],
+    '.tabbrowser-tab': ['overflow'],
     '.tab-background': ['outline', 'outline-offset'],
     '.tab-background::after': null,
     '.tab-icon-image': ['opacity', 'filter', 'transition'],
@@ -123,7 +129,7 @@ test('the stylesheet only changes the documented tab sub-elements', () => {
   for (const d of decls) {
     for (const element of targets(d)) {
       if (d.property.startsWith('--')) {
-        assert.equal(element, '.tabbrowser-tab', path_(d));
+        assert.ok(element.startsWith('.tabbrowser-tab'), path_(d));
         continue;
       }
       const key = element.startsWith('.tabbrowser-tab') ? '.tabbrowser-tab' : element;
@@ -133,7 +139,7 @@ test('the stylesheet only changes the documented tab sub-elements', () => {
     }
   }
   assert.ok(!/\.tab-background::before/.test(code));
-  assert.ok(!code.includes('[zen-essential]'));
+  assert.ok(code.includes('[zen-essential="true"]'));
 });
 
 test('loaded and unloaded visual rules target mutually exclusive tab states', () => {
@@ -145,8 +151,8 @@ test('loaded and unloaded visual rules target mutually exclusive tab states', ()
     const isMarker = d.property === 'outline' || d.property === 'position' ||
       (d.property === 'content' && d.value === '""') || d.value.includes('drop-shadow');
     if (isMarker) {
-      const loaded = p.includes('.tabbrowser-tab:not([pending])');
-      const unloaded = p.includes('.tabbrowser-tab[pending]');
+      const loaded = p.includes(':not([pending])');
+      const unloaded = p.includes('[pending]') && !loaded;
       assert.notEqual(loaded, unloaded, p);
     }
   }
@@ -161,6 +167,25 @@ test('loaded and unloaded effects are separate and unloaded can copy loaded appe
   assert.match(css, /var\(--tsh-loaded-ring-width\) solid var\(--tsh-loaded-color\)/);
   assert.match(css, /var\(--tsh-loaded-dot-size\)/);
   assert.match(css, /var\(--tsh-loaded-glow-color\)/);
+
+  const tabLoaded = byProperty.get(`${prefix}tabs.loaded.effect`);
+  const tabUnloaded = byProperty.get(`${prefix}tabs.unloaded.effect`);
+  assert.equal(tabLoaded.defaultValue, 'same-essentials');
+  assert.equal(tabUnloaded.defaultValue, 'same-essentials');
+  assert.equal(tabLoaded.options[0].value, 'same-essentials');
+  assert.equal(tabUnloaded.options[0].value, 'same-essentials');
+  assert.ok(css.includes('-moz-pref("mod.tab-state-highlighter.tabs.loaded.effect", "same-essentials")'));
+  assert.ok(css.includes('-moz-pref("mod.tab-state-highlighter.tabs.unloaded.effect", "same-essentials")'));
+});
+
+test('Essentials and regular-tab rules are disjoint', () => {
+  const visual = decls.filter((d) => !d.property.startsWith('--'));
+  for (const d of visual) {
+    const p = path_(d);
+    const essentials = p.includes('[zen-essential="true"]') && !p.includes(':not([zen-essential="true"])');
+    const tabs = p.includes(':not([zen-essential="true"])');
+    assert.notEqual(essentials, tabs, p);
+  }
 });
 
 test('whole-tab glow never draws a ring', () => {
@@ -176,19 +201,25 @@ test('whole-tab glow never draws a ring', () => {
 
 test('outside and overlay whole-tab glows remain separate options', () => {
   const wholeTabGlows = decls.filter((d) =>
-    d.property === 'filter' &&
-    d.value.includes('drop-shadow') &&
+    d.property === 'box-shadow' &&
     d.context.some((c) => !c.startsWith('@media not') && c.includes('"tab-glow"'))
   );
-  assert.equal(wholeTabGlows.length, 3);
-  for (const d of wholeTabGlows) assert.ok(targets(d)[0].startsWith('.tabbrowser-tab'), path_(d));
+  assert.equal(wholeTabGlows.length, 9);
+  for (const d of wholeTabGlows) {
+    assert.deepEqual(targets(d), ['.tab-background::after'], path_(d));
+    assert.equal([...d.value.matchAll(/0 0 var\(--tsh-glow-radius\)/g)].length, 3);
+  }
+
+  const overflow = decls.filter((d) => d.property === 'overflow' && d.value === 'visible !important');
+  assert.equal(overflow.length, 9);
+  for (const d of overflow) assert.ok(targets(d)[0].startsWith('.tabbrowser-tab'), path_(d));
 
   const overlayGlows = decls.filter((d) =>
     d.property === 'background' &&
     d.value.includes('radial-gradient') &&
     d.context.some((c) => c.includes('"tab-overlay-glow"'))
   );
-  assert.equal(overlayGlows.length, 3);
+  assert.equal(overlayGlows.length, 9);
   for (const d of overlayGlows) assert.deepEqual(targets(d), ['.tab-background::after'], path_(d));
 });
 
@@ -200,6 +231,12 @@ test('numeric marker controls are state-specific and glow strength is uncapped w
     [`${prefix}unloaded.ring-width`]: 2,
     [`${prefix}unloaded.glow-strength`]: 100,
     [`${prefix}unloaded.dot-size`]: 5,
+    [`${prefix}tabs.loaded.ring-width`]: 2,
+    [`${prefix}tabs.loaded.glow-strength`]: 100,
+    [`${prefix}tabs.loaded.dot-size`]: 5,
+    [`${prefix}tabs.unloaded.ring-width`]: 2,
+    [`${prefix}tabs.unloaded.glow-strength`]: 100,
+    [`${prefix}tabs.unloaded.dot-size`]: 5,
   };
   for (const [property, defaultValue] of Object.entries(numeric)) {
     const pref = byProperty.get(property);
@@ -220,7 +257,7 @@ test('numeric marker controls are state-specific and glow strength is uncapped w
   }
 
   const glowFilters = decls.filter((d) => d.property === 'filter' && d.value.includes('drop-shadow'));
-  assert.equal(glowFilters.length, 6);
+  assert.equal(glowFilters.length, 9);
   for (const d of glowFilters) {
     assert.equal([...d.value.matchAll(/drop-shadow/g)].length, 3);
     assert.equal([...d.value.matchAll(/var\(--tsh-glow-radius\)/g)].length, 3);
@@ -229,7 +266,8 @@ test('numeric marker controls are state-specific and glow strength is uncapped w
 
 test('explicit fading scope only dims discarded tabs and never restores full color', () => {
   const dims = decls.filter((d) => d.property === 'opacity' && d.value.includes('--tsh-unloaded-opacity'));
-  assert.deepEqual(dims.map((d) => targets(d)[0]).sort(), ['.tab-icon-image', '.tab-icon-image', '.tab-stack', '.tab-stack']);
+  assert.equal(dims.length, 8);
+  assert.deepEqual([...new Set(dims.map((d) => targets(d)[0]))].sort(), ['.tab-icon-image', '.tab-stack']);
   for (const d of dims) {
     const explicit = d.context.some((c) => !c.startsWith('@media not') && c.includes('"explicit"'));
     if (explicit) assert.ok(path_(d).includes('[pending][discarded]'), path_(d));
@@ -241,7 +279,7 @@ test('explicit fading scope only dims discarded tabs and never restores full col
   const never = decls.find((d) => d.property === 'opacity' && d.value === '1 !important' && d.context.some((c) => c.includes('"never"')));
   assert.ok(never, 'never block missing');
   assert.deepEqual(targets(never).sort(), ['.tab-icon-image', '.tab-stack']);
-  assert.ok(never.selectors.includes('.tabbrowser-tab[pending]'));
+  assert.ok(never.selectors.some((s) => s.includes('[pending]')));
 });
 
 test('README documents every setting and the renamed repository', () => {

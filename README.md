@@ -2,9 +2,9 @@
 
 A configurable Sine CSS mod for Zen Browser that gives loaded and unloaded tabs distinct visual effects.
 
-- Loaded and unloaded tabs have separate marker settings.
-- Unloaded tabs can copy the complete loaded-tab effect or only its color.
-- Effects include a ring, a whole-tab glow, a favicon glow, a corner dot, or ring and dot together.
+- Essentials and regular tabs have separate loaded, unloaded, and fading settings.
+- Regular tabs can copy the corresponding Essentials effect and fading settings.
+- Effects include a ring, an outside whole-tab glow, an overlay whole-tab glow, a favicon glow, a corner dot, or ring and dot together.
 - Unloaded tabs can also be dimmed or desaturated independently of their marker.
 - Settings apply live in every window.
 
@@ -18,11 +18,11 @@ This repository is the complete mod source; there is no build step.
 
 ## Settings
 
-### Loaded tabs
+### Essentials — loaded
 
 | Setting | Options | Default |
 | --- | --- | --- |
-| Effect | Ring · Whole-tab glow · Favicon glow · Dot · Ring and dot · Off | Ring |
+| Effect | Ring · Glow around the whole tab · Glow over the whole tab · Favicon glow · Dot · Ring and dot · Off | Ring |
 | Color | Zen accent · Custom | Zen accent |
 | Custom color | Any CSS color | `#3ddc84` |
 | Ring width | Any whole number of pixels | `2` |
@@ -32,11 +32,11 @@ This repository is the complete mod source; there is no build step.
 
 Glow strength changes the opacity of three fixed-radius glow layers. Larger numbers continue increasing the opacity with diminishing steps; the blur radius stays fixed at `5px`.
 
-### Unloaded tabs
+### Essentials — unloaded
 
 | Setting | Options | Default |
 | --- | --- | --- |
-| Effect | Same as loaded tabs · Ring · Whole-tab glow · Favicon glow · Dot · Ring and dot · Off | Off |
+| Effect | Same as loaded tabs · Ring · Glow around the whole tab · Glow over the whole tab · Favicon glow · Dot · Ring and dot · Off | Off |
 | Color | Same as loaded tabs · Zen accent · Custom | Same as loaded tabs |
 | Custom color | Any CSS color | `#ff8a3d` |
 | Ring width | Any whole number of pixels | `2` |
@@ -46,7 +46,7 @@ Glow strength changes the opacity of three fixed-radius glow layers. Larger numb
 
 **Same as loaded tabs** on Effect copies the loaded style, color, ring width, glow strength, and dot size. Selecting an explicit unloaded effect exposes its independent controls. Selecting **Same as loaded tabs** on Color copies only the loaded color.
 
-### Unloaded tab fading
+### Essentials — unloaded fading
 
 | Setting | Options | Default |
 | --- | --- | --- |
@@ -57,14 +57,26 @@ Glow strength changes the opacity of three fixed-radius glow layers. Larger numb
 
 Firefox marks unloaded tabs with `[pending]` and tabs unloaded explicitly with `[discarded]`. **Browser default** leaves Firefox's own unloaded-tab styling untouched. **Never dim** restores full opacity while leaving a configured marker effect active.
 
+### Regular tabs — loaded
+
+Regular loaded tabs have their own Effect, Color, Custom color, Ring width, Glow strength, Dot size, and Hide on selected controls. **Same as loaded Essentials** copies the complete loaded Essentials effect. It is the default so existing highlighting continues to apply to regular tabs after updating.
+
+### Regular tabs — unloaded
+
+Regular unloaded tabs have the same independent controls. Effect can copy **unloaded Essentials** or the loaded regular-tab effect. Color can copy unloaded Essentials or the loaded regular-tab color. **Same as unloaded Essentials** is the default.
+
+### Regular tabs — unloaded fading
+
+Regular tabs have separate Appearance, target, amount, and scope controls. Appearance defaults to **Same as unloaded Essentials**, which copies the complete Essentials fading configuration. Selecting an explicit appearance exposes the regular-tab target, amount, and scope settings.
+
 ## Compatibility
 
 The mod limits its changes to these elements and properties:
 
 | Element | Properties |
 | --- | --- |
-| `.tabbrowser-tab` | `filter` for the outside whole-tab glow |
-| `.tab-background` | `outline`, `outline-offset`; `::after` for the glow overlay |
+| `.tabbrowser-tab` | `overflow` for the outside whole-tab glow |
+| `.tab-background` | `outline`, `outline-offset`; `::after` for whole-tab glow layers |
 | `.tab-icon-image` | `opacity`, `filter`, `transition` |
 | `.tab-stack` | `opacity`, `filter`, `transition` |
 | `.tab-content::after` | Corner dot properties |
