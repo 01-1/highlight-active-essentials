@@ -1,13 +1,13 @@
 {
-  "id": "highlight-active-essentials",
-  "name": "Highlight Active Essentials",
-  "description": "Mark loaded Essentials with a ring, glow, or dot, and dim or desaturate unloaded ones. Configurable and compatible with themes like Neo Zen.",
-  "homepage": "https://github.com/01-1/highlight-active-essentials",
-  "version": "1.2.0",
+  "id": "tab-state-highlighter",
+  "name": "Tab State Highlighter",
+  "description": "Apply independent ring, glow, or dot effects to loaded and unloaded tabs, with optional unloaded-tab fading.",
+  "homepage": "https://github.com/01-1/tab-state-highlighter",
+  "version": "2.0.0",
   "createdAt": "2026-09-21",
-  "updatedAt": "2026-09-21T20:55:59Z",
+  "updatedAt": "2026-09-22T02:49:33Z",
   "style": "chrome.css",
   "preferences": "preferences.json",
-  "tags": ["chrome", "tabs", "essentials"],
+  "tags": ["chrome", "tabs", "tab-state"],
   "fork": ["zen"]
 }

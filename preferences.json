@@ -1,8 +1,8 @@
 [
-  { "type": "separator", "label": "Loaded Essentials" },
+  { "type": "separator", "label": "Loaded tabs" },
   {
-    "property": "mod.highlight-active-essentials.loaded.style",
-    "label": "Marker",
+    "property": "mod.tab-state-highlighter.loaded.effect",
+    "label": "Effect",
     "type": "dropdown",
     "defaultValue": "ring",
     "placeholder": false,
@@ -16,7 +16,7 @@
     ]
   },
   {
-    "property": "mod.highlight-active-essentials.loaded.color",
+    "property": "mod.tab-state-highlighter.loaded.color",
     "label": "Color",
     "type": "dropdown",
     "defaultValue": "accent",
@@ -26,11 +26,11 @@
       { "label": "Custom", "value": "custom" }
     ],
     "conditions": [
-      { "not": { "property": "mod.highlight-active-essentials.loaded.style", "value": "off" } }
+      { "not": { "property": "mod.tab-state-highlighter.loaded.effect", "value": "off" } }
     ]
   },
   {
-    "property": "mod.highlight-active-essentials.loaded.custom-color",
+    "property": "mod.tab-state-highlighter.loaded.custom-color",
     "label": "Custom color (any CSS color; leave the field to save)",
     "type": "string",
     "defaultValue": "#3ddc84",
@@ -38,59 +38,153 @@
     "border": "value",
     "operator": "AND",
     "conditions": [
-      { "if": { "property": "mod.highlight-active-essentials.loaded.color", "value": "custom" } },
-      { "not": { "property": "mod.highlight-active-essentials.loaded.style", "value": "off" } }
+      { "if": { "property": "mod.tab-state-highlighter.loaded.color", "value": "custom" } },
+      { "not": { "property": "mod.tab-state-highlighter.loaded.effect", "value": "off" } }
     ]
   },
   {
-    "property": "mod.highlight-active-essentials.loaded.ring-width",
+    "property": "mod.tab-state-highlighter.loaded.ring-width",
     "label": "Ring width (px; leave the field to save)",
     "type": "string",
     "value": "num",
     "defaultValue": 2,
     "placeholder": "2",
     "conditions": [
-      { "if": { "property": "mod.highlight-active-essentials.loaded.style", "value": "ring" } },
-      { "if": { "property": "mod.highlight-active-essentials.loaded.style", "value": "ring-dot" } }
+      { "if": { "property": "mod.tab-state-highlighter.loaded.effect", "value": "ring" } },
+      { "if": { "property": "mod.tab-state-highlighter.loaded.effect", "value": "ring-dot" } }
     ]
   },
   {
-    "property": "mod.highlight-active-essentials.loaded.glow-strength",
-    "label": "Glow strength (0–100%; leave the field to save)",
+    "property": "mod.tab-state-highlighter.loaded.glow-strength",
+    "label": "Glow strength (number with no maximum; leave the field to save)",
     "type": "string",
     "value": "num",
     "defaultValue": 100,
     "placeholder": "100",
     "conditions": [
-      { "if": { "property": "mod.highlight-active-essentials.loaded.style", "value": "tab-glow" } },
-      { "if": { "property": "mod.highlight-active-essentials.loaded.style", "value": "glow" } }
+      { "if": { "property": "mod.tab-state-highlighter.loaded.effect", "value": "tab-glow" } },
+      { "if": { "property": "mod.tab-state-highlighter.loaded.effect", "value": "glow" } }
     ]
   },
   {
-    "property": "mod.highlight-active-essentials.loaded.dot-size",
+    "property": "mod.tab-state-highlighter.loaded.dot-size",
     "label": "Dot size (px; leave the field to save)",
     "type": "string",
     "value": "num",
     "defaultValue": 5,
     "placeholder": "5",
     "conditions": [
-      { "if": { "property": "mod.highlight-active-essentials.loaded.style", "value": "dot" } },
-      { "if": { "property": "mod.highlight-active-essentials.loaded.style", "value": "ring-dot" } }
+      { "if": { "property": "mod.tab-state-highlighter.loaded.effect", "value": "dot" } },
+      { "if": { "property": "mod.tab-state-highlighter.loaded.effect", "value": "ring-dot" } }
     ]
   },
   {
-    "property": "mod.highlight-active-essentials.loaded.hide-on-selected",
-    "label": "Hide the marker on the selected Essential",
+    "property": "mod.tab-state-highlighter.loaded.hide-on-selected",
+    "label": "Hide the effect on the selected loaded tab",
     "type": "checkbox",
     "defaultValue": false,
     "conditions": [
-      { "not": { "property": "mod.highlight-active-essentials.loaded.style", "value": "off" } }
+      { "not": { "property": "mod.tab-state-highlighter.loaded.effect", "value": "off" } }
     ]
   },
 
-  { "type": "separator", "label": "Unloaded Essentials" },
+  { "type": "separator", "label": "Unloaded tabs" },
   {
-    "property": "mod.highlight-active-essentials.unloaded.style",
+    "property": "mod.tab-state-highlighter.unloaded.effect",
+    "label": "Effect",
+    "type": "dropdown",
+    "defaultValue": "off",
+    "placeholder": false,
+    "options": [
+      { "label": "Same as loaded tabs", "value": "same" },
+      { "label": "Ring around the tab", "value": "ring" },
+      { "label": "Glow around the whole tab", "value": "tab-glow" },
+      { "label": "Glow behind the favicon", "value": "glow" },
+      { "label": "Dot in the corner", "value": "dot" },
+      { "label": "Ring and dot", "value": "ring-dot" },
+      { "label": "Off", "value": "off" }
+    ]
+  },
+  {
+    "property": "mod.tab-state-highlighter.unloaded.color",
+    "label": "Color",
+    "type": "dropdown",
+    "defaultValue": "same",
+    "placeholder": false,
+    "options": [
+      { "label": "Same as loaded tabs", "value": "same" },
+      { "label": "Zen accent color", "value": "accent" },
+      { "label": "Custom", "value": "custom" }
+    ],
+    "operator": "AND",
+    "conditions": [
+      { "not": { "property": "mod.tab-state-highlighter.unloaded.effect", "value": "same" } },
+      { "not": { "property": "mod.tab-state-highlighter.unloaded.effect", "value": "off" } }
+    ]
+  },
+  {
+    "property": "mod.tab-state-highlighter.unloaded.custom-color",
+    "label": "Custom color (any CSS color; leave the field to save)",
+    "type": "string",
+    "defaultValue": "#ff8a3d",
+    "placeholder": "e.g. #ff8a3d, rgb(255 138 61), orange",
+    "border": "value",
+    "operator": "AND",
+    "conditions": [
+      { "if": { "property": "mod.tab-state-highlighter.unloaded.color", "value": "custom" } },
+      { "not": { "property": "mod.tab-state-highlighter.unloaded.effect", "value": "same" } },
+      { "not": { "property": "mod.tab-state-highlighter.unloaded.effect", "value": "off" } }
+    ]
+  },
+  {
+    "property": "mod.tab-state-highlighter.unloaded.ring-width",
+    "label": "Ring width (px; leave the field to save)",
+    "type": "string",
+    "value": "num",
+    "defaultValue": 2,
+    "placeholder": "2",
+    "conditions": [
+      { "if": { "property": "mod.tab-state-highlighter.unloaded.effect", "value": "ring" } },
+      { "if": { "property": "mod.tab-state-highlighter.unloaded.effect", "value": "ring-dot" } }
+    ]
+  },
+  {
+    "property": "mod.tab-state-highlighter.unloaded.glow-strength",
+    "label": "Glow strength (number with no maximum; leave the field to save)",
+    "type": "string",
+    "value": "num",
+    "defaultValue": 100,
+    "placeholder": "100",
+    "conditions": [
+      { "if": { "property": "mod.tab-state-highlighter.unloaded.effect", "value": "tab-glow" } },
+      { "if": { "property": "mod.tab-state-highlighter.unloaded.effect", "value": "glow" } }
+    ]
+  },
+  {
+    "property": "mod.tab-state-highlighter.unloaded.dot-size",
+    "label": "Dot size (px; leave the field to save)",
+    "type": "string",
+    "value": "num",
+    "defaultValue": 5,
+    "placeholder": "5",
+    "conditions": [
+      { "if": { "property": "mod.tab-state-highlighter.unloaded.effect", "value": "dot" } },
+      { "if": { "property": "mod.tab-state-highlighter.unloaded.effect", "value": "ring-dot" } }
+    ]
+  },
+  {
+    "property": "mod.tab-state-highlighter.unloaded.hide-on-selected",
+    "label": "Hide the effect on the selected unloaded tab",
+    "type": "checkbox",
+    "defaultValue": false,
+    "conditions": [
+      { "not": { "property": "mod.tab-state-highlighter.unloaded.effect", "value": "off" } }
+    ]
+  },
+
+  { "type": "separator", "label": "Unloaded tab fading" },
+  {
+    "property": "mod.tab-state-highlighter.unloaded.appearance",
     "label": "Appearance",
     "type": "dropdown",
     "defaultValue": "dim",
@@ -104,8 +198,8 @@
     ]
   },
   {
-    "property": "mod.highlight-active-essentials.unloaded.target",
-    "label": "Apply to",
+    "property": "mod.tab-state-highlighter.unloaded.target",
+    "label": "Apply fading to",
     "type": "dropdown",
     "defaultValue": "icon",
     "placeholder": false,
@@ -114,13 +208,13 @@
       { "label": "The whole tab, background included", "value": "tab" }
     ],
     "conditions": [
-      { "if": { "property": "mod.highlight-active-essentials.unloaded.style", "value": "dim" } },
-      { "if": { "property": "mod.highlight-active-essentials.unloaded.style", "value": "dim-grayscale" } },
-      { "if": { "property": "mod.highlight-active-essentials.unloaded.style", "value": "grayscale" } }
+      { "if": { "property": "mod.tab-state-highlighter.unloaded.appearance", "value": "dim" } },
+      { "if": { "property": "mod.tab-state-highlighter.unloaded.appearance", "value": "dim-grayscale" } },
+      { "if": { "property": "mod.tab-state-highlighter.unloaded.appearance", "value": "grayscale" } }
     ]
   },
   {
-    "property": "mod.highlight-active-essentials.unloaded.opacity",
+    "property": "mod.tab-state-highlighter.unloaded.opacity",
     "label": "Dim amount",
     "type": "dropdown",
     "defaultValue": "medium",
@@ -131,24 +225,24 @@
       { "label": "Heavy (25% opacity)", "value": "heavy" }
     ],
     "conditions": [
-      { "if": { "property": "mod.highlight-active-essentials.unloaded.style", "value": "dim" } },
-      { "if": { "property": "mod.highlight-active-essentials.unloaded.style", "value": "dim-grayscale" } }
+      { "if": { "property": "mod.tab-state-highlighter.unloaded.appearance", "value": "dim" } },
+      { "if": { "property": "mod.tab-state-highlighter.unloaded.appearance", "value": "dim-grayscale" } }
     ]
   },
   {
-    "property": "mod.highlight-active-essentials.unloaded.scope",
-    "label": "Which unloaded Essentials",
+    "property": "mod.tab-state-highlighter.unloaded.scope",
+    "label": "Which unloaded tabs",
     "type": "dropdown",
     "defaultValue": "all",
     "placeholder": false,
     "options": [
       { "label": "All unloaded", "value": "all" },
-      { "label": "Only ones unloaded with \"Unload Tab\"", "value": "explicit" }
+      { "label": "Only tabs unloaded with \"Unload Tab\"", "value": "explicit" }
     ],
     "conditions": [
-      { "if": { "property": "mod.highlight-active-essentials.unloaded.style", "value": "dim" } },
-      { "if": { "property": "mod.highlight-active-essentials.unloaded.style", "value": "dim-grayscale" } },
-      { "if": { "property": "mod.highlight-active-essentials.unloaded.style", "value": "grayscale" } }
+      { "if": { "property": "mod.tab-state-highlighter.unloaded.appearance", "value": "dim" } },
+      { "if": { "property": "mod.tab-state-highlighter.unloaded.appearance", "value": "dim-grayscale" } },
+      { "if": { "property": "mod.tab-state-highlighter.unloaded.appearance", "value": "grayscale" } }
     ]
   }
 ]

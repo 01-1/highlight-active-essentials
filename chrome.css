@@ -1,86 +1,166 @@
-/* Highlight Active Essentials — Sine mod for Zen Browser.
+/* Tab State Highlighter — Sine mod for Zen Browser.
  *
- * Marks loaded Essentials and fades unloaded ones. Settings are read with
- * -moz-pref() so they apply live in every window, and a preference that Sine
- * has not written yet simply means "use the default".
+ * Applies independent marker effects to loaded and unloaded tabs, and can dim
+ * or desaturate unloaded tabs. Preferences are read with -moz-pref() so they
+ * update live in every window.
  *
  * Compatibility contract. This sheet only ever sets:
  *   .tab-background      outline, outline-offset, filter
  *   .tab-icon-image      opacity, filter, transition
  *   .tab-stack           opacity, filter, transition
  *   .tab-content::after  the dot marker
- * It never touches the tab element's opacity/visibility (Neo Zen's collapsed
- * Essentials animate those), .tab-background's background/border/box-shadow
- * (Neo Zen owns them), or .tab-background::before/::after (Zen owns them).
- * !important is required because Sine loads this as a user sheet, which
- * otherwise loses to the browser's own chrome styles.
+ * It never changes the tab element's opacity, visibility, or display, never
+ * changes .tab-background's background, border, or box-shadow, and never uses
+ * .tab-background::before or ::after.
  */
 
 /* ---- Values chosen by the preferences ---------------------------------- */
 
-.tabbrowser-tab[zen-essential="true"] {
-  --hae-color: var(--zen-primary-color);
-  --hae-ring-width: max(0px, calc(var(--mod-highlight-active-essentials-loaded-ring-width, 2) * 1px));
-  --hae-glow-radius: 5px;
-  --hae-glow-strength: clamp(0%, calc(var(--mod-highlight-active-essentials-loaded-glow-strength, 100) * 1%), 100%);
-  --hae-glow-color: color-mix(in srgb, var(--hae-color) var(--hae-glow-strength), transparent);
-  --hae-dot-size: max(0px, calc(var(--mod-highlight-active-essentials-loaded-dot-size, 5) * 1px));
-  --hae-unloaded-opacity: 0.45;
-  --hae-unloaded-filter: none;
+.tabbrowser-tab {
+  --tsh-loaded-color: var(--zen-primary-color);
+  --tsh-loaded-ring-width: max(0px, calc(var(--mod-tab-state-highlighter-loaded-ring-width, 2) * 1px));
+  --tsh-loaded-glow-level: max(0, var(--mod-tab-state-highlighter-loaded-glow-strength, 100));
+  --tsh-loaded-glow-opacity: calc(100% * var(--tsh-loaded-glow-level) / (var(--tsh-loaded-glow-level) + 50));
+  --tsh-loaded-glow-color: color-mix(in srgb, var(--tsh-loaded-color) var(--tsh-loaded-glow-opacity), transparent);
+  --tsh-loaded-dot-size: max(0px, calc(var(--mod-tab-state-highlighter-loaded-dot-size, 5) * 1px));
 
-  @media -moz-pref("mod.highlight-active-essentials.loaded.color", "custom") {
-    /* Sine exposes string preferences as --mod-<property> on :root. */
-    --hae-color: var(--mod-highlight-active-essentials-loaded-custom-color, var(--zen-primary-color));
+  --tsh-unloaded-color: var(--tsh-loaded-color);
+  --tsh-unloaded-ring-width: max(0px, calc(var(--mod-tab-state-highlighter-unloaded-ring-width, 2) * 1px));
+  --tsh-unloaded-glow-level: max(0, var(--mod-tab-state-highlighter-unloaded-glow-strength, 100));
+  --tsh-unloaded-glow-opacity: calc(100% * var(--tsh-unloaded-glow-level) / (var(--tsh-unloaded-glow-level) + 50));
+  --tsh-unloaded-glow-color: color-mix(in srgb, var(--tsh-unloaded-color) var(--tsh-unloaded-glow-opacity), transparent);
+  --tsh-unloaded-dot-size: max(0px, calc(var(--mod-tab-state-highlighter-unloaded-dot-size, 5) * 1px));
+
+  --tsh-glow-radius: 5px;
+  --tsh-unloaded-opacity: 0.45;
+  --tsh-unloaded-icon-filter: blur(0);
+  --tsh-unloaded-stack-filter: none;
+
+  @media -moz-pref("mod.tab-state-highlighter.loaded.color", "custom") {
+    --tsh-loaded-color: var(--mod-tab-state-highlighter-loaded-custom-color, #3ddc84);
+  }
+  @media -moz-pref("mod.tab-state-highlighter.unloaded.color", "accent") {
+    --tsh-unloaded-color: var(--zen-primary-color);
+  }
+  @media -moz-pref("mod.tab-state-highlighter.unloaded.color", "custom") {
+    --tsh-unloaded-color: var(--mod-tab-state-highlighter-unloaded-custom-color, #ff8a3d);
   }
 
-  @media -moz-pref("mod.highlight-active-essentials.unloaded.opacity", "light") {
-    --hae-unloaded-opacity: 0.7;
+  @media -moz-pref("mod.tab-state-highlighter.unloaded.opacity", "light") {
+    --tsh-unloaded-opacity: 0.7;
   }
-  @media -moz-pref("mod.highlight-active-essentials.unloaded.opacity", "heavy") {
-    --hae-unloaded-opacity: 0.25;
+  @media -moz-pref("mod.tab-state-highlighter.unloaded.opacity", "heavy") {
+    --tsh-unloaded-opacity: 0.25;
   }
-  @media -moz-pref("mod.highlight-active-essentials.unloaded.style", "dim-grayscale"),
-         -moz-pref("mod.highlight-active-essentials.unloaded.style", "grayscale") {
-    --hae-unloaded-filter: grayscale(1);
+  @media -moz-pref("mod.tab-state-highlighter.unloaded.appearance", "grayscale"),
+         -moz-pref("mod.tab-state-highlighter.unloaded.appearance", "never") {
+    --tsh-unloaded-opacity: 1;
   }
-  @media -moz-pref("mod.highlight-active-essentials.unloaded.style", "grayscale"),
-         -moz-pref("mod.highlight-active-essentials.unloaded.style", "never") {
-    --hae-unloaded-opacity: 1;
+  @media -moz-pref("mod.tab-state-highlighter.unloaded.appearance", "dim-grayscale"),
+         -moz-pref("mod.tab-state-highlighter.unloaded.appearance", "grayscale") {
+    --tsh-unloaded-icon-filter: grayscale(1);
+    --tsh-unloaded-stack-filter: grayscale(1);
+  }
+  @media -moz-pref("mod.tab-state-highlighter.unloaded.target", "tab") {
+    --tsh-unloaded-icon-filter: blur(0);
   }
 }
 
-/* ---- Loaded Essentials -------------------------------------------------- */
+/* ---- Unloaded tab fading ------------------------------------------------ */
 
-@media not -moz-pref("mod.highlight-active-essentials.loaded.style", "off") {
-  .tabbrowser-tab[zen-essential="true"]:not([pending]) {
-    /* Ring: the default and part of "ring-dot". Inset so the
-       Essentials grid's overflow: hidden never clips it. */
-    @media not -moz-pref("mod.highlight-active-essentials.loaded.style", "glow") {
-      @media not -moz-pref("mod.highlight-active-essentials.loaded.style", "dot") {
-        @media not -moz-pref("mod.highlight-active-essentials.loaded.style", "tab-glow") {
+@media not -moz-pref("mod.tab-state-highlighter.unloaded.appearance", "browser") {
+  @media not -moz-pref("mod.tab-state-highlighter.unloaded.target", "tab") {
+    @media not -moz-pref("mod.tab-state-highlighter.unloaded.scope", "explicit") {
+      .tabbrowser-tab[pending] .tab-icon-image {
+        opacity: var(--tsh-unloaded-opacity) !important;
+        filter: var(--tsh-unloaded-icon-filter) !important;
+        transition: opacity 0.4s ease, filter 0.4s ease !important;
+      }
+    }
+    @media -moz-pref("mod.tab-state-highlighter.unloaded.scope", "explicit") {
+      .tabbrowser-tab[pending][discarded] .tab-icon-image {
+        opacity: var(--tsh-unloaded-opacity) !important;
+        filter: var(--tsh-unloaded-icon-filter) !important;
+        transition: opacity 0.4s ease, filter 0.4s ease !important;
+      }
+    }
+  }
+
+  @media -moz-pref("mod.tab-state-highlighter.unloaded.target", "tab") {
+    @media not -moz-pref("mod.tab-state-highlighter.unloaded.scope", "explicit") {
+      .tabbrowser-tab[pending] {
+        & .tab-stack {
+          opacity: var(--tsh-unloaded-opacity) !important;
+          filter: var(--tsh-unloaded-stack-filter) !important;
+          transition: opacity 0.4s ease, filter 0.4s ease !important;
+        }
+        & .tab-icon-image {
+          opacity: 1 !important;
+          filter: none !important;
+        }
+      }
+    }
+    @media -moz-pref("mod.tab-state-highlighter.unloaded.scope", "explicit") {
+      .tabbrowser-tab[pending][discarded] {
+        & .tab-stack {
+          opacity: var(--tsh-unloaded-opacity) !important;
+          filter: var(--tsh-unloaded-stack-filter) !important;
+          transition: opacity 0.4s ease, filter 0.4s ease !important;
+        }
+        & .tab-icon-image {
+          opacity: 1 !important;
+          filter: none !important;
+        }
+      }
+    }
+  }
+}
+
+@media -moz-pref("mod.tab-state-highlighter.unloaded.appearance", "never") {
+  .tabbrowser-tab[pending] {
+    & .tab-icon-image,
+    & .tab-stack {
+      opacity: 1 !important;
+      filter: none !important;
+    }
+  }
+}
+
+/* ---- Loaded tab effect -------------------------------------------------- */
+
+@media not -moz-pref("mod.tab-state-highlighter.loaded.effect", "off") {
+  .tabbrowser-tab:not([pending]) {
+    @media not -moz-pref("mod.tab-state-highlighter.loaded.effect", "glow") {
+      @media not -moz-pref("mod.tab-state-highlighter.loaded.effect", "dot") {
+        @media not -moz-pref("mod.tab-state-highlighter.loaded.effect", "tab-glow") {
           & .tab-background {
-            outline: var(--hae-ring-width) solid var(--hae-color) !important;
-            outline-offset: calc(-1 * var(--hae-ring-width)) !important;
+            outline: var(--tsh-loaded-ring-width) solid var(--tsh-loaded-color) !important;
+            outline-offset: calc(-1 * var(--tsh-loaded-ring-width)) !important;
           }
         }
       }
     }
 
-    /* Whole-tab glow: the background's silhouette casts light without a ring. */
-    @media -moz-pref("mod.highlight-active-essentials.loaded.style", "tab-glow") {
+    @media -moz-pref("mod.tab-state-highlighter.loaded.effect", "tab-glow") {
       & .tab-background {
-        filter: drop-shadow(0 0 var(--hae-glow-radius) var(--hae-glow-color)) !important;
+        filter:
+          drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color))
+          drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color))
+          drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color)) !important;
       }
     }
 
-    @media -moz-pref("mod.highlight-active-essentials.loaded.style", "glow") {
+    @media -moz-pref("mod.tab-state-highlighter.loaded.effect", "glow") {
       & .tab-icon-image {
-        filter: drop-shadow(0 0 var(--hae-glow-radius) var(--hae-glow-color)) !important;
+        filter:
+          drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color))
+          drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color))
+          drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color)) !important;
       }
     }
 
-    @media -moz-pref("mod.highlight-active-essentials.loaded.style", "dot"),
-           -moz-pref("mod.highlight-active-essentials.loaded.style", "ring-dot") {
+    @media -moz-pref("mod.tab-state-highlighter.loaded.effect", "dot"),
+           -moz-pref("mod.tab-state-highlighter.loaded.effect", "ring-dot") {
       & .tab-content {
         position: relative !important;
       }
@@ -89,18 +169,18 @@
         position: absolute;
         top: 3px;
         inset-inline-end: 3px;
-        width: var(--hae-dot-size);
-        height: var(--hae-dot-size);
+        width: var(--tsh-loaded-dot-size);
+        height: var(--tsh-loaded-dot-size);
         border-radius: 50%;
-        background: var(--hae-color);
+        background: var(--tsh-loaded-color);
         pointer-events: none;
         z-index: 1;
       }
     }
   }
 
-  @media -moz-pref("mod.highlight-active-essentials.loaded.hide-on-selected") {
-    .tabbrowser-tab[zen-essential="true"]:not([pending])[visuallyselected] {
+  @media -moz-pref("mod.tab-state-highlighter.loaded.hide-on-selected") {
+    .tabbrowser-tab:not([pending])[visuallyselected] {
       & .tab-background {
         outline: none !important;
         filter: none !important;
@@ -115,68 +195,126 @@
   }
 }
 
-/* ---- Unloaded Essentials ------------------------------------------------ */
+/* ---- Unloaded tab effect: independent settings ------------------------- */
 
-/* Firefox marks every unloaded tab with [pending] and adds [discarded] when
-   the user chose "Unload Tab". Both are mirrored onto .tab-icon-image, where
-   Firefox's own browser.tabs.fadeOut* rules also live, so setting opacity
-   there replaces the native fade instead of stacking with it. Whole-tab mode
-   fades .tab-stack (background and content together) and pins the favicon to
-   full strength so the native fade cannot double-dim it. */
-@media not -moz-pref("mod.highlight-active-essentials.unloaded.style", "browser") {
-  @media not -moz-pref("mod.highlight-active-essentials.unloaded.target", "tab") {
-    @media not -moz-pref("mod.highlight-active-essentials.unloaded.scope", "explicit") {
-      .tabbrowser-tab[zen-essential="true"][pending] .tab-icon-image {
-        opacity: var(--hae-unloaded-opacity) !important;
-        filter: var(--hae-unloaded-filter) !important;
-        transition: opacity 0.4s ease, filter 0.4s ease !important;
+@media not -moz-pref("mod.tab-state-highlighter.unloaded.effect", "off") {
+  @media not -moz-pref("mod.tab-state-highlighter.unloaded.effect", "same") {
+    .tabbrowser-tab[pending] {
+      @media -moz-pref("mod.tab-state-highlighter.unloaded.effect", "ring"),
+             -moz-pref("mod.tab-state-highlighter.unloaded.effect", "ring-dot") {
+        & .tab-background {
+          outline: var(--tsh-unloaded-ring-width) solid var(--tsh-unloaded-color) !important;
+          outline-offset: calc(-1 * var(--tsh-unloaded-ring-width)) !important;
+        }
       }
-    }
-    @media -moz-pref("mod.highlight-active-essentials.unloaded.scope", "explicit") {
-      .tabbrowser-tab[zen-essential="true"][pending][discarded] .tab-icon-image {
-        opacity: var(--hae-unloaded-opacity) !important;
-        filter: var(--hae-unloaded-filter) !important;
-        transition: opacity 0.4s ease, filter 0.4s ease !important;
+
+      @media -moz-pref("mod.tab-state-highlighter.unloaded.effect", "tab-glow") {
+        & .tab-background {
+          filter:
+            drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-unloaded-glow-color))
+            drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-unloaded-glow-color))
+            drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-unloaded-glow-color)) !important;
+        }
+      }
+
+      @media -moz-pref("mod.tab-state-highlighter.unloaded.effect", "glow") {
+        & .tab-icon-image {
+          filter:
+            var(--tsh-unloaded-icon-filter)
+            drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-unloaded-glow-color))
+            drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-unloaded-glow-color))
+            drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-unloaded-glow-color)) !important;
+        }
+      }
+
+      @media -moz-pref("mod.tab-state-highlighter.unloaded.effect", "dot"),
+             -moz-pref("mod.tab-state-highlighter.unloaded.effect", "ring-dot") {
+        & .tab-content {
+          position: relative !important;
+        }
+        & .tab-content::after {
+          content: "";
+          position: absolute;
+          top: 3px;
+          inset-inline-end: 3px;
+          width: var(--tsh-unloaded-dot-size);
+          height: var(--tsh-unloaded-dot-size);
+          border-radius: 50%;
+          background: var(--tsh-unloaded-color);
+          pointer-events: none;
+          z-index: 1;
+        }
       }
     }
   }
 
-  @media -moz-pref("mod.highlight-active-essentials.unloaded.target", "tab") {
-    @media not -moz-pref("mod.highlight-active-essentials.unloaded.scope", "explicit") {
-      .tabbrowser-tab[zen-essential="true"][pending] {
-        & .tab-stack {
-          opacity: var(--hae-unloaded-opacity) !important;
-          filter: var(--hae-unloaded-filter) !important;
-          transition: opacity 0.4s ease, filter 0.4s ease !important;
+  /* "Same as loaded tabs" copies style, color, and numeric effect values. */
+  @media -moz-pref("mod.tab-state-highlighter.unloaded.effect", "same") {
+    @media not -moz-pref("mod.tab-state-highlighter.loaded.effect", "off") {
+      .tabbrowser-tab[pending] {
+        @media not -moz-pref("mod.tab-state-highlighter.loaded.effect", "glow") {
+          @media not -moz-pref("mod.tab-state-highlighter.loaded.effect", "dot") {
+            @media not -moz-pref("mod.tab-state-highlighter.loaded.effect", "tab-glow") {
+              & .tab-background {
+                outline: var(--tsh-loaded-ring-width) solid var(--tsh-loaded-color) !important;
+                outline-offset: calc(-1 * var(--tsh-loaded-ring-width)) !important;
+              }
+            }
+          }
         }
-        & .tab-icon-image {
-          opacity: 1 !important;
-          filter: none !important;
+
+        @media -moz-pref("mod.tab-state-highlighter.loaded.effect", "tab-glow") {
+          & .tab-background {
+            filter:
+              drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color))
+              drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color))
+              drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color)) !important;
+          }
         }
-      }
-    }
-    @media -moz-pref("mod.highlight-active-essentials.unloaded.scope", "explicit") {
-      .tabbrowser-tab[zen-essential="true"][pending][discarded] {
-        & .tab-stack {
-          opacity: var(--hae-unloaded-opacity) !important;
-          filter: var(--hae-unloaded-filter) !important;
-          transition: opacity 0.4s ease, filter 0.4s ease !important;
+
+        @media -moz-pref("mod.tab-state-highlighter.loaded.effect", "glow") {
+          & .tab-icon-image {
+            filter:
+              var(--tsh-unloaded-icon-filter)
+              drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color))
+              drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color))
+              drop-shadow(0 0 var(--tsh-glow-radius) var(--tsh-loaded-glow-color)) !important;
+          }
         }
-        & .tab-icon-image {
-          opacity: 1 !important;
-          filter: none !important;
+
+        @media -moz-pref("mod.tab-state-highlighter.loaded.effect", "dot"),
+               -moz-pref("mod.tab-state-highlighter.loaded.effect", "ring-dot") {
+          & .tab-content {
+            position: relative !important;
+          }
+          & .tab-content::after {
+            content: "";
+            position: absolute;
+            top: 3px;
+            inset-inline-end: 3px;
+            width: var(--tsh-loaded-dot-size);
+            height: var(--tsh-loaded-dot-size);
+            border-radius: 50%;
+            background: var(--tsh-loaded-color);
+            pointer-events: none;
+            z-index: 1;
+          }
         }
       }
     }
   }
 
-  /* "Never dim" applies to every unloaded Essential regardless of scope. */
-  @media -moz-pref("mod.highlight-active-essentials.unloaded.style", "never") {
-    .tabbrowser-tab[zen-essential="true"][pending] {
-      & .tab-icon-image,
-      & .tab-stack {
-        opacity: 1 !important;
+  @media -moz-pref("mod.tab-state-highlighter.unloaded.hide-on-selected") {
+    .tabbrowser-tab[pending][visuallyselected] {
+      & .tab-background {
+        outline: none !important;
         filter: none !important;
+      }
+      & .tab-icon-image {
+        filter: var(--tsh-unloaded-icon-filter) !important;
+      }
+      & .tab-content::after {
+        content: none !important;
       }
     }
   }
