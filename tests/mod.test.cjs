@@ -112,7 +112,9 @@ test('default dropdown values are fall-through behavior', () => {
 
 test('the stylesheet only changes the documented tab sub-elements', () => {
   const allowed = {
-    '.tab-background': ['outline', 'outline-offset', 'filter'],
+    '.tabbrowser-tab': ['filter'],
+    '.tab-background': ['outline', 'outline-offset'],
+    '.tab-background::after': null,
     '.tab-icon-image': ['opacity', 'filter', 'transition'],
     '.tab-stack': ['opacity', 'filter', 'transition'],
     '.tab-content': ['position'],
@@ -124,13 +126,13 @@ test('the stylesheet only changes the documented tab sub-elements', () => {
         assert.equal(element, '.tabbrowser-tab', path_(d));
         continue;
       }
-      assert.ok(!element.startsWith('.tabbrowser-tab'), `${d.property} set on tab element`);
-      assert.ok(element in allowed, `${d.property} on unexpected element ${element}`);
-      if (allowed[element]) assert.ok(allowed[element].includes(d.property), `${d.property} on ${element}`);
-      if (element !== '.tab-content::after') assert.match(d.value, /!important$/, `${d.property} on ${element}`);
+      const key = element.startsWith('.tabbrowser-tab') ? '.tabbrowser-tab' : element;
+      assert.ok(key in allowed, `${d.property} on unexpected element ${element}`);
+      if (allowed[key]) assert.ok(allowed[key].includes(d.property), `${d.property} on ${element}`);
+      if (allowed[key] && element !== '.tab-content::after') assert.match(d.value, /!important$/, `${d.property} on ${element}`);
     }
   }
-  assert.ok(!/\.tab-background::(before|after)/.test(code));
+  assert.ok(!/\.tab-background::before/.test(code));
   assert.ok(!code.includes('[zen-essential]'));
 });
 
@@ -153,8 +155,8 @@ test('loaded and unloaded visual rules target mutually exclusive tab states', ()
 test('loaded and unloaded effects are separate and unloaded can copy loaded appearance', () => {
   const loaded = byProperty.get(`${prefix}loaded.effect`);
   const unloaded = byProperty.get(`${prefix}unloaded.effect`);
-  assert.deepEqual(loaded.options.map((o) => o.value), ['ring', 'tab-glow', 'glow', 'dot', 'ring-dot', 'off']);
-  assert.deepEqual(unloaded.options.map((o) => o.value), ['same', 'ring', 'tab-glow', 'glow', 'dot', 'ring-dot', 'off']);
+  assert.deepEqual(loaded.options.map((o) => o.value), ['ring', 'tab-glow', 'tab-overlay-glow', 'glow', 'dot', 'ring-dot', 'off']);
+  assert.deepEqual(unloaded.options.map((o) => o.value), ['same', 'ring', 'tab-glow', 'tab-overlay-glow', 'glow', 'dot', 'ring-dot', 'off']);
   assert.ok(css.includes('-moz-pref("mod.tab-state-highlighter.unloaded.effect", "same")'));
   assert.match(css, /var\(--tsh-loaded-ring-width\) solid var\(--tsh-loaded-color\)/);
   assert.match(css, /var\(--tsh-loaded-dot-size\)/);
@@ -170,6 +172,24 @@ test('whole-tab glow never draws a ring', () => {
     const excludesTabGlow = d.context.some((c) => c.startsWith('@media not') && c.includes('"tab-glow"'));
     assert.ok(explicitRing || excludesTabGlow, path_(d));
   }
+});
+
+test('outside and overlay whole-tab glows remain separate options', () => {
+  const wholeTabGlows = decls.filter((d) =>
+    d.property === 'filter' &&
+    d.value.includes('drop-shadow') &&
+    d.context.some((c) => !c.startsWith('@media not') && c.includes('"tab-glow"'))
+  );
+  assert.equal(wholeTabGlows.length, 3);
+  for (const d of wholeTabGlows) assert.ok(targets(d)[0].startsWith('.tabbrowser-tab'), path_(d));
+
+  const overlayGlows = decls.filter((d) =>
+    d.property === 'background' &&
+    d.value.includes('radial-gradient') &&
+    d.context.some((c) => c.includes('"tab-overlay-glow"'))
+  );
+  assert.equal(overlayGlows.length, 3);
+  for (const d of overlayGlows) assert.deepEqual(targets(d), ['.tab-background::after'], path_(d));
 });
 
 test('numeric marker controls are state-specific and glow strength is uncapped without changing radius', () => {

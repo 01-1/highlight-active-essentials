@@ -63,12 +63,13 @@ The mod limits its changes to these elements and properties:
 
 | Element | Properties |
 | --- | --- |
-| `.tab-background` | `outline`, `outline-offset`, `filter` |
+| `.tabbrowser-tab` | `filter` for the outside whole-tab glow |
+| `.tab-background` | `outline`, `outline-offset`; `::after` for the glow overlay |
 | `.tab-icon-image` | `opacity`, `filter`, `transition` |
 | `.tab-stack` | `opacity`, `filter`, `transition` |
 | `.tab-content::after` | Corner dot properties |
 
-It does not set the tab element's opacity, visibility, or display; change `.tab-background` colors, borders, or box shadows; or use `.tab-background::before` or `::after`. This avoids the properties Zen and themes such as Neo Zen use for layout, selected-tab backgrounds, and compact-mode animation.
+It does not set the tab element's opacity, visibility, or display, or change `.tab-background` colors, borders, or box shadows. This avoids the properties Zen and themes such as Neo Zen use for layout, selected-tab backgrounds, and compact-mode animation.
 
 Settings use Firefox `-moz-pref()` media queries. Numeric and custom-color settings use Sine's generated `--mod-*` custom properties.
 

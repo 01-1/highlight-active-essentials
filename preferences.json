@@ -9,6 +9,7 @@
     "options": [
       { "label": "Ring around the tab", "value": "ring" },
       { "label": "Glow around the whole tab", "value": "tab-glow" },
+      { "label": "Glow over the whole tab", "value": "tab-overlay-glow" },
       { "label": "Glow behind the favicon", "value": "glow" },
       { "label": "Dot in the corner", "value": "dot" },
       { "label": "Ring and dot", "value": "ring-dot" },
@@ -63,6 +64,7 @@
     "placeholder": "100",
     "conditions": [
       { "if": { "property": "mod.tab-state-highlighter.loaded.effect", "value": "tab-glow" } },
+      { "if": { "property": "mod.tab-state-highlighter.loaded.effect", "value": "tab-overlay-glow" } },
       { "if": { "property": "mod.tab-state-highlighter.loaded.effect", "value": "glow" } }
     ]
   },
@@ -99,6 +101,7 @@
       { "label": "Same as loaded tabs", "value": "same" },
       { "label": "Ring around the tab", "value": "ring" },
       { "label": "Glow around the whole tab", "value": "tab-glow" },
+      { "label": "Glow over the whole tab", "value": "tab-overlay-glow" },
       { "label": "Glow behind the favicon", "value": "glow" },
       { "label": "Dot in the corner", "value": "dot" },
       { "label": "Ring and dot", "value": "ring-dot" },
@@ -157,6 +160,7 @@
     "placeholder": "100",
     "conditions": [
       { "if": { "property": "mod.tab-state-highlighter.unloaded.effect", "value": "tab-glow" } },
+      { "if": { "property": "mod.tab-state-highlighter.unloaded.effect", "value": "tab-overlay-glow" } },
       { "if": { "property": "mod.tab-state-highlighter.unloaded.effect", "value": "glow" } }
     ]
   },
